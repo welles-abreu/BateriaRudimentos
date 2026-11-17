@@ -1,0 +1,3846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DrumPad Academy — Mestre dos Rudimentos</title>
+  <style>
+    :root {
+      --bg-deep: #0b0e14;
+      --bg-panel: #131822;
+      --bg-card: #1a2130;
+      --bg-card-hover: #222b3d;
+      --border-subtle: #2a344a;
+      --text-main: #f0f4fc;
+      --text-muted: #94a3b8;
+      --hand-left: #ff6b4a;
+      --hand-left-glow: rgba(255, 107, 74, 0.45);
+      --hand-left-soft: rgba(255, 107, 74, 0.14);
+      --hand-right: #00d2ff;
+      --hand-right-glow: rgba(0, 210, 255, 0.45);
+      --hand-right-soft: rgba(0, 210, 255, 0.14);
+      --accent-gold: #fbbf24;
+      --accent-green: #10b981;
+      --accent-purple: #a855f7;
+      --danger: #ef4444;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* TOP HEADER / GAMIFICATION BAR */
+    header.top-bar {
+      background: linear-gradient(90deg, #101520 0%, #171f30 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--hand-left), var(--hand-right));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 210, 255, 0.25);
+    }
+
+    .brand-title h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .player-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .rank-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 14px;
+      border-radius: 999px;
+    }
+
+    .rank-icon {
+      font-size: 1.2rem;
+    }
+
+    .rank-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rank-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .rank-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    .xp-box {
+      display: flex;
+      flex-direction: column;
+      min-width: 180px;
+      gap: 4px;
+    }
+
+    .xp-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .xp-top .xp-val {
+      color: var(--hand-right);
+      font-family: var(--font-mono);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: #0d1119;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--hand-left), var(--accent-gold), var(--hand-right));
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    /* MAIN LAYOUT */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      flex: 1;
+      min-height: calc(100vh - 69px);
+    }
+
+    @media (max-width: 1024px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* SIDEBAR */
+    aside.sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 69px);
+      overflow: hidden;
+    }
+
+    @media (max-width: 1024px) {
+      aside.sidebar {
+        max-height: 440px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-deep);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--hand-right);
+    }
+
+    .modules-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .module-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .module-header {
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: background 0.2s;
+    }
+
+    .module-header:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .module-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .module-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--hand-right);
+      letter-spacing: 0.05em;
+    }
+
+    .module-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .module-progress-pill {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      background: var(--bg-deep);
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .module-progress-pill.complete {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .exercise-list {
+      display: none;
+      flex-direction: column;
+      border-top: 1px solid var(--border-subtle);
+      background: #111620;
+    }
+
+    .module-block.open .exercise-list {
+      display: flex;
+    }
+
+    .exercise-item {
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .exercise-item:last-child {
+      border-bottom: none;
+    }
+
+    .exercise-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .exercise-item.active {
+      background: linear-gradient(90deg, rgba(0, 210, 255, 0.16), transparent);
+      border-left: 3px solid var(--hand-right);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .ex-item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .ex-code {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      min-width: 28px;
+    }
+
+    .ex-title-short {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ex-status-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .ex-status-dot.done {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: #052e16;
+      font-weight: 900;
+    }
+
+    /* MAIN STAGE */
+    main.stage {
+      padding: 20px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow-y: auto;
+      max-height: calc(100vh - 69px);
+    }
+
+    @media (max-width: 1024px) {
+      main.stage {
+        max-height: none;
+        padding: 16px;
+      }
+    }
+
+    /* EXERCISE HEADER CARD */
+    .exercise-banner {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ex-meta-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ex-badges {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-module {
+      background: rgba(0, 210, 255, 0.14);
+      color: var(--hand-right);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+
+    .badge-nick {
+      background: rgba(251, 191, 36, 0.14);
+      color: var(--accent-gold);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+
+    .ex-main-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .ex-objective {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      line-height: 1.45;
+    }
+
+    .ex-actions-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-mastered {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-mastered:hover {
+      border-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .btn-mastered.mastered {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: #042f1a;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
+    }
+
+    /* TIME SIGNATURE & RHYTHM MONITOR */
+    .rhythm-hud {
+      display: grid;
+      grid-template-columns: 200px 1fr 240px;
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .rhythm-hud {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hud-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .time-sig-box {
+      align-items: center;
+      text-align: center;
+      position: relative;
+      background: radial-gradient(circle at center, #1d2638 0%, var(--bg-panel) 100%);
+    }
+
+    .time-sig-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .time-sig-display {
+      font-family: var(--font-mono);
+      font-size: 2.3rem;
+      font-weight: 900;
+      color: var(--accent-gold);
+      line-height: 1;
+    }
+
+    .subdiv-name {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--hand-right);
+    }
+
+    .counter-visor {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .counter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .beat-slots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: 56px;
+      background: var(--bg-deep);
+      border-radius: 10px;
+      padding: 8px 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .beat-pill {
+      min-width: 36px;
+      height: 38px;
+      padding: 0 8px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: transform 0.08s, background 0.08s, color 0.08s;
+    }
+
+    .beat-pill.downbeat {
+      border-color: rgba(251, 191, 36, 0.45);
+      color: #e2e8f0;
+    }
+
+    .beat-pill.active {
+      background: var(--accent-gold);
+      color: #0b0e14;
+      border-color: #fff;
+      transform: scale(1.14);
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
+    }
+
+    .math-explanation {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .math-explanation strong {
+      color: var(--text-main);
+    }
+
+    /* DUAL DRUM PADS AREA (CRITICAL REQUIREMENT) */
+    .pads-arena {
+      background: radial-gradient(ellipse at top, #1b2436 0%, #0e131d 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .countin-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(11, 14, 20, 0.82);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 15;
+    }
+
+    .countin-overlay.visible {
+      display: flex;
+    }
+
+    .countin-number {
+      font-family: var(--font-mono);
+      font-size: 5rem;
+      font-weight: 900;
+      color: var(--accent-gold);
+      text-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+      animation: popIn 0.25s ease-out;
+    }
+
+    .countin-text {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0.3; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .dual-pads-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: center;
+      justify-items: center;
+      padding: 6px 0;
+    }
+
+    @media (max-width: 640px) {
+      .dual-pads-grid {
+        gap: 12px;
+      }
+    }
+
+    .pad-station {
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    .pad-hand-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+    }
+
+    .pad-hand-title.left {
+      color: var(--hand-left);
+    }
+
+    .pad-hand-title.right {
+      color: var(--hand-right);
+    }
+
+    .pad-circle-outer {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: #0b0e14;
+      border: 6px solid #263044;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.06s ease, border-color 0.08s ease, box-shadow 0.08s ease;
+      box-shadow: inset 0 8px 22px rgba(0,0,0,0.85), 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    @media (max-width: 640px) {
+      .pad-circle-outer {
+        width: 155px;
+        height: 155px;
+      }
+    }
+
+    .pad-surface {
+      width: 82%;
+      height: 82%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #2a354b 0%, #182030 70%, #121824 100%);
+      border: 2px dashed rgba(255, 255, 255, 0.12);
+      display: flex;
+       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: background 0.06s ease;
+    }
+
+    .pad-letter {
+      font-family: var(--font-mono);
+      font-size: 3rem;
+      font-weight: 900;
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .pad-station.left .pad-letter {
+      color: var(--hand-left);
+    }
+
+    .pad-station.right .pad-letter {
+      color: var(--hand-right);
+    }
+
+    .pad-dynamic-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      height: 18px;
+      margin-top: 2px;
+    }
+
+    /* Drumstick SVG animation */
+    .drumstick-wrap {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      pointer-events: none;
+      z-index: 5;
+      transition: transform 0.055s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+
+    .pad-station.left .drumstick-wrap {
+      top: -18px;
+      left: -15px;
+      transform-origin: 15% 15%;
+      transform: rotate(-18deg);
+    }
+
+    .pad-station.right .drumstick-wrap {
+      top: -18px;
+      right: -15px;
+      transform-origin: 85% 15%;
+      transform: rotate(18deg);
+    }
+
+    .pad-station.left.hit .drumstick-wrap {
+      transform: rotate(8deg) translate(6px, 10px);
+    }
+
+    .pad-station.right.hit .drumstick-wrap {
+      transform: rotate(-8deg) translate(-6px, 10px);
+    }
+
+    /* Pad Hit Visual States by Dynamic */
+    .pad-station.left.hit-normal .pad-circle-outer {
+      border-color: var(--hand-left);
+      box-shadow: 0 0 28px var(--hand-left-glow), inset 0 0 20px var(--hand-left-glow);
+      transform: scale(1.04);
+    }
+    .pad-station.left.hit-accent .pad-circle-outer {
+      border-color: #fff;
+      box-shadow: 0 0 52px var(--hand-left), 0 0 22px #fff, inset 0 0 35px var(--hand-left);
+      transform: scale(1.11);
+    }
+    .pad-station.left.hit-ghost .pad-circle-outer {
+      border-color: rgba(255, 107, 74, 0.55);
+      box-shadow: 0 0 12px rgba(255, 107, 74, 0.25);
+      transform: scale(0.98);
+    }
+
+    .pad-station.right.hit-normal .pad-circle-outer {
+      border-color: var(--hand-right);
+      box-shadow: 0 0 28px var(--hand-right-glow), inset 0 0 20px var(--hand-right-glow);
+      transform: scale(1.04);
+    }
+    .pad-station.right.hit-accent .pad-circle-outer {
+      border-color: #fff;
+      box-shadow: 0 0 52px var(--hand-right), 0 0 22px #fff, inset 0 0 35px var(--hand-right);
+      transform: scale(1.11);
+    }
+    .pad-station.right.hit-ghost .pad-circle-outer {
+      border-color: rgba(0, 210, 255, 0.55);
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.25);
+      transform: scale(0.98);
+    }
+
+    /* STICKING GRID / LIVE NOTATION */
+    .sticking-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sticking-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .legend-items {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 0.74rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sticking-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+      gap: 8px;
+      background: var(--bg-deep);
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .note-cell {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 82px;
+      transition: transform 0.08s, border-color 0.08s, background 0.08s;
+      position: relative;
+    }
+
+    .note-cell.beat-start {
+      border-left: 2px solid rgba(251, 191, 36, 0.45);
+    }
+
+    .note-accent-mark {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 900;
+      height: 16px;
+      line-height: 1;
+      color: var(--accent-gold);
+    }
+
+    .note-hand {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 900;
+      display: flex;
+      align-items: baseline;
+      gap: 1px;
+    }
+
+    .note-hand.hand-D {
+      color: var(--hand-right);
+    }
+
+    .note-hand.hand-E {
+      color: var(--hand-left);
+    }
+
+    .note-hand.hand-P {
+      color: var(--text-muted);
+      opacity: 0.45;
+    }
+
+    .grace-prefix {
+      font-size: 0.72rem;
+      font-weight: 700;
+      opacity: 0.85;
+      margin-right: 1px;
+    }
+
+    .grace-prefix.grace-D {
+      color: var(--hand-right);
+    }
+
+    .grace-prefix.grace-E {
+      color: var(--hand-left);
+    }
+
+    .note-count {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .note-cell.active-step {
+      transform: translateY(-4px) scale(1.05);
+      border-color: #fff;
+      background: #273249;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      z-index: 2;
+    }
+
+    /* CONTROLS DECK */
+    .controls-deck {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 20px;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .controls-deck {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .transport-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, var(--hand-right), #0088ff);
+      color: #041019;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0, 210, 255, 0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-play.playing {
+      background: linear-gradient(135deg, var(--hand-left), #ef4444);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(255, 107, 74, 0.35);
+    }
+
+    .btn-play:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-toggle {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-toggle:hover {
+      color: var(--text-main);
+      border-color: #475569;
+    }
+
+    .btn-toggle.active {
+      background: rgba(168, 85, 247, 0.18);
+      color: #e9d5ff;
+      border-color: var(--accent-purple);
+    }
+
+    .bpm-control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bpm-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bpm-readout {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .bpm-readout span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .bpm-targets {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-bpm-preset {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-bpm-preset:hover {
+      border-color: var(--hand-right);
+      color: #fff;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-step-bpm {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--bg-deep);
+      border-radius: 999px;
+      outline: none;
+      border: 1px solid var(--border-subtle);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--hand-right);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+    }
+
+    .mixer-group {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .vol-channel {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 115px;
+    }
+
+    .vol-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* MASTER TIP & PEDAGOGY FOOTER */
+    .pedagogy-grid {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .pedagogy-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .master-tip-card {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(19, 24, 34, 0.95));
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .master-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(251, 191, 36, 0.18);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .master-content h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-gold);
+      margin-bottom: 4px;
+    }
+
+    .master-content p {
+      font-size: 0.88rem;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .speed-ladder-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .speed-ladder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent-purple);
+    }
+
+    .bar-counter-text {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* CONFETTI CANVAS */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- TOP HEADER -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-logo">🥁</div>
+      <div class="brand-title">
+        <h1>DrumPad Academy — Mestre dos Rudimentos</h1>
+        <span>Treinador Interativo de Baquetas, Dinâmica e Precisão Rítmica</span>
+      </div>
+    </div>
+
+    <div class="player-stats">
+      <div class="rank-badge">
+        <span class="rank-icon" id="rankIcon">🥢</span>
+        <div class="rank-info">
+          <span class="rank-label">Patente Atual</span>
+          <span class="rank-name" id="rankName">Aprendiz de Baqueta</span>
+        </div>
+      </div>
+
+      <div class="xp-box">
+        <div class="xp-top">
+          <span>Progresso Geral (<span id="masteredCount">0</span>/100)</span>
+          <span class="xp-val"><span id="xpValue">0</span> XP</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="globalProgressFill"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APPLICATION -->
+  <div class="app-layout">
+    <!-- SIDEBAR: 10 MODULES x 10 EXERCISES -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>
+          <span>Currículo (100 Rudimentos)</span>
+          <span id="filteredCount" style="font-size:0.75rem;color:var(--hand-right)">10 Módulos</span>
+        </h2>
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Buscar rudimento, apelido ou compasso (ex: 6/8, Paradiddle)..."
+        />
+      </div>
+      <div class="modules-container" id="modulesContainer"></div>
+    </aside>
+
+    <!-- CENTRAL STAGE -->
+    <main class="stage">
+      <!-- EXERCISE HEADER -->
+      <section class="exercise-banner">
+        <div class="ex-meta-left">
+          <div class="ex-badges">
+            <span class="badge badge-module" id="exModuleBadge">Módulo 1 • #01</span>
+            <span class="badge badge-nick" id="exNicknameBadge">⚡ "O Relógio Suíço"</span>
+          </div>
+          <h2 class="ex-main-title" id="exTitle">Alternância Básica em Semínimas</h2>
+          <p class="ex-objective" id="exObjective">
+            Desenvolver igualdade sonora entre mão direita e esquerda mantendo pulsação firme na cabeça do tempo.
+          </p>
+        </div>
+
+        <div class="ex-actions-right">
+          <button class="btn-mastered" id="btnMastered" title="Marcar este exercício como dominado">
+            <span id="masteredIcon">☆</span>
+            <span id="masteredText">Marcar como Dominado</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- RHYTHM & TIME SIGNATURE HUD -->
+      <section class="rhythm-hud">
+        <div class="hud-box time-sig-box">
+          <span class="time-sig-label">Fórmula de Compasso</span>
+          <div class="time-sig-display" id="timeSigDisplay">4/4</div>
+          <div class="subdiv-name" id="subdivNameDisplay">Semínimas (1 nota/tempo)</div>
+        </div>
+
+        <div class="hud-box counter-visor">
+          <div class="counter-header">
+            <span>Contador Visual de Tempos e Subdivisões</span>
+            <span id="currentMeasureInfo">Compasso #1</span>
+          </div>
+          <div class="beat-slots" id="beatSlots"></div>
+        </div>
+
+        <div class="hud-box">
+          <span class="time-sig-label">Lógica Rítmica do Compasso</span>
+          <p class="math-explanation" id="timeMathExplanation">
+            Em <strong>4/4</strong> (compasso simples), o BPM define a velocidade da <strong>Semínima</strong>. Cada compasso possui 4 pulsos principais.
+          </p>
+        </div>
+      </section>
+
+      <!-- VISUAL HANDS PAD & LIVE STICKING GRID -->
+      <section class="pads-arena">
+        <div class="countin-overlay" id="countinOverlay">
+          <div class="countin-number" id="countinNumber">4</div>
+          <div class="countin-text">Prepare as Baquetas (Count-In)...</div>
+        </div>
+
+        <div class="dual-pads-grid">
+          <!-- LEFT HAND PAD (E / L) -->
+          <div class="pad-station left" id="padLeft" title="Clique ou pressione [A] / [Seta Esquerda] para testar Mão Esquerda">
+            <div class="pad-hand-title left">
+              <span>● MÃO ESQUERDA (E / L)</span>
+            </div>
+            <div class="pad-circle-outer">
+              <svg class="drumstick-wrap" viewBox="0 0 120 120">
+                <line x1="12" y1="12" x2="88" y2="88" stroke="#ff9f89" stroke-width="6" stroke-linecap="round" />
+                <ellipse cx="92" cy="92" rx="7" ry="5" transform="rotate(45 92 92)" fill="#fff" />
+              </svg>
+              <div class="pad-surface">
+                <span class="pad-letter">E</span>
+                <span class="pad-dynamic-tag" id="leftDynamicTag">Pronto</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT HAND PAD (D / R) -->
+          <div class="pad-station right" id="padRight" title="Clique ou pressione [L] / [Seta Direita] para testar Mão Direita">
+            <div class="pad-hand-title right">
+              <span>● MÃO DIREITA (D / R)</span>
+            </div>
+            <div class="pad-circle-outer">
+              <svg class="drumstick-wrap" viewBox="0 0 120 120">
+                <line x1="108" y1="12" x2="32" y2="88" stroke="#8ceeff" stroke-width="6" stroke-linecap="round" />
+                <ellipse cx="28" cy="92" rx="7" ry="5" transform="rotate(-45 28 92)" fill="#fff" />
+              </svg>
+              <div class="pad-surface">
+                <span class="pad-letter">D</span>
+                <span class="pad-dynamic-tag" id="rightDynamicTag">Pronto</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STICKING / MANULAÇÃO GRID -->
+        <div class="sticking-section">
+          <div class="sticking-header">
+            <span>Grade de Manulação Sincronizada (Clique em um pad acima para ouvir o timbre manual)</span>
+            <div class="legend-items">
+              <span class="legend-item"><strong style="color:var(--accent-gold)">&gt;</strong> Acento (Forte)</span>
+              <span class="legend-item"><strong>D / E</strong> Toque Normal</span>
+              <span class="legend-item"><strong style="color:var(--text-muted)">(D)</strong> Nota Fantasma (30%)</span>
+              <span class="legend-item"><strong style="color:var(--hand-left)">eD / eeD</strong> Flam / Drag</span>
+            </div>
+          </div>
+          <div class="sticking-grid" id="stickingGrid"></div>
+        </div>
+      </section>
+
+      <!-- CONTROLS BAR -->
+      <section class="controls-deck">
+        <div class="transport-buttons">
+          <button class="btn-play" id="btnPlay">
+            <span id="playIcon">▶</span>
+            <span id="playLabel">Iniciar Treino</span>
+          </button>
+
+          <button class="btn-toggle" id="btnInvertHands" title="Inverte todas as mãos (D ↔ E) para treinar canhoto ou mão fraca">
+            <span>⇄</span>
+            <span id="invertLabel">Inverter Mãos (D↔E)</span>
+          </button>
+
+          <button class="btn-toggle active" id="btnCountIn" title="Faz 1 compasso de contagem antes de iniciar">
+            <span>⏱</span>
+            <span>Count-In (1 Comp.)</span>
+          </button>
+
+          <button class="btn-toggle" id="btnSpeedLadder" title="Aumenta +5 BPM automaticamente a cada 4 compassos">
+            <span>🚀</span>
+            <span>Escada +5 BPM</span>
+          </button>
+        </div>
+
+        <div class="bpm-control-group">
+          <div class="bpm-top-row">
+            <div class="bpm-readout"><span id="bpmValue">80</span> <span>BPM</span></div>
+            <div class="bpm-targets" id="bpmTargetButtons">
+              <button class="btn-bpm-preset" data-level="init" id="btnBpmInit">Inic: 60</button>
+              <button class="btn-bpm-preset" data-level="inter" id="btnBpmInter">Inter: 90</button>
+              <button class="btn-bpm-preset" data-level="master" id="btnBpmMaster">Mestre: 120</button>
+            </div>
+          </div>
+          <div class="slider-row">
+            <button class="btn-step-bpm" id="btnBpmMinus">−</button>
+            <input type="range" id="bpmSlider" min="40" max="220" value="80" />
+            <button class="btn-step-bpm" id="btnBpmPlus">+</button>
+          </div>
+        </div>
+
+        <div class="mixer-group">
+          <div class="vol-channel">
+            <div class="vol-label">
+              <span>Vol. Pad</span>
+              <span id="padVolText">90%</span>
+            </div>
+            <input type="range" id="padVolume" min="0" max="100" value="90" />
+          </div>
+          <div class="vol-channel">
+            <div class="vol-label">
+              <span>Metrônomo</span>
+              <span id="metroVolText">70%</span>
+            </div>
+            <input type="range" id="metroVolume" min="0" max="100" value="70" />
+          </div>
+        </div>
+      </section>
+
+      <!-- PEDAGOGICAL TIP & SPEED BUILDER STATUS -->
+      <section class="pedagogy-grid">
+        <div class="master-tip-card">
+          <div class="master-avatar">🎓</div>
+          <div class="master-content">
+            <h3>Dica do Mestre de Percussão</h3>
+            <p id="masterTipText">
+              Mantenha a pinça (fulcro) entre o polegar e o indicador relaxada. Os outros três dedos abraçam a baqueta suavemente como uma mola, sem sufocar o rebote natural no pad.
+            </p>
+          </div>
+        </div>
+
+        <div class="speed-ladder-card">
+          <div class="speed-ladder-header">
+            <span>🚀 Status da Escada de Velocidade</span>
+            <span id="ladderBadgeStatus">Desativado</span>
+          </div>
+          <p class="bar-counter-text" id="ladderProgressText">
+            Ative o modo "Escada +5 BPM" para subir 5 BPM automaticamente a cada 4 compassos completos sem interromper o groove.
+          </p>
+          <div class="progress-track">
+            <div class="progress-fill" id="ladderBarFill" style="width: 0%"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /********************************************************************
+     * 1. CURRÍCULO COMPLETO: 10 MÓDULOS x 10 RUDIMENTOS = 100 EXERCÍCIOS
+     * Notação de cada token na string de notas:
+     *   D ou E = Toque Normal (Direita / Esquerda)
+     *   >D ou >E = Acento (Forte e encorpado)
+     *   (D) ou (E) = Nota Fantasma (30% de intensidade)
+     *   eD ou dE = Flam (1 apojatura ~35ms antes da nota principal)
+     *   >eD ou >dE = Flam Acentuado
+     *   eeD ou ddE = Drag / Ruff (2 apojaturas rápidas antes da nota)
+     *   >eeD ou >ddE = Drag Acentuado
+     *   - = Pausa (Silêncio na subdivisão)
+     ********************************************************************/
+    const CURRICULUM_MODULES = [
+      {
+        id: 1,
+        title: "Primeiros Passos e Pulsação",
+        subtitle: "Compassos 4/4 e 2/4 • Controle de Alternância e Pausas",
+        exercises: [
+          {
+            id: "1-01",
+            name: "Semínimas Alternadas (Single Stroke Inicial)",
+            nick: "O Relógio Suíço",
+            timeSig: "4/4",
+            subdivLabel: "Semínimas (1 por tempo)",
+            stepsPerBeat: 1,
+            counts: ["1", "2", "3", "4"],
+            pattern: ["D", "E", "D", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Estabelecer o centro rítmico em 4/4 tocando exatamente junto com o clique do metrônomo.",
+            tip: "Concentre-se em fazer a mão esquerda soar idêntica à mão direita. Mire no círculo central de cada pad."
+          },
+          {
+            id: "1-02",
+            name: "Semínimas Lideradas pela Esquerda",
+            nick: "Espelho Canhoto",
+            timeSig: "4/4",
+            subdivLabel: "Semínimas (1 por tempo)",
+            stepsPerBeat: 1,
+            counts: ["1", "2", "3", "4"],
+            pattern: ["E", "D", "E", "D"],
+            bpmTargets: [60, 90, 120],
+            objective: "Destravar a independência neural começando o compasso com a mão não-dominante.",
+            tip: "Respire fundo no tempo 1 e evite tensionar o ombro esquerdo ao liderar o compasso."
+          },
+          {
+            id: "1-03",
+            name: "Marcha Binária em 2/4",
+            nick: "Passo de Desfile",
+            timeSig: "2/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&"],
+            pattern: [">D", "E", "D", "E"],
+            bpmTargets: [65, 95, 125],
+            objective: "Sentir o ciclo curto do compasso 2/4 marcando a cabeça do tempo 1.",
+            tip: "Para o acento no tempo 1, suba a baqueta direita a ~30cm; para os demais toques, mantenha a ~10cm."
+          },
+          {
+            id: "1-04",
+            name: "Colcheias Contínuas em 4/4",
+            nick: "Motor a Vapor",
+            timeSig: "4/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&"],
+            pattern: ["D", "E", "D", "E", "D", "E", "D", "E"],
+            bpmTargets: [65, 100, 135],
+            objective: "Dividir cada pulso do metrônomo exatamente ao meio com alternância contínua.",
+            tip: "Os números (1, 2, 3, 4) caem na mão Direita; todos os contratempos ('&') caem na mão Esquerda."
+          },
+          {
+            id: "1-05",
+            name: "Colcheias Lideradas pela Esquerda",
+            nick: "Engrenagem Reversa",
+            timeSig: "4/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&"],
+            pattern: ["E", "D", "E", "D", "E", "D", "E", "D"],
+            bpmTargets: [65, 100, 130],
+            objective: "Fortalecer a mão esquerda mantendo-a cravada nos tempos fortes do metrônomo.",
+            tip: "Ouça o clique do metrônomo fundir-se ao som da mão esquerda sem adiantar (rush) nem atrasar (drag)."
+          },
+          {
+            id: "1-06",
+            name: "Controle de Espaço (Pausa no Tempo 4)",
+            nick: "Freio de Precisão",
+            timeSig: "4/4",
+            subdivLabel: "Semínimas com Pausa",
+            stepsPerBeat: 1,
+            counts: ["1", "2", "3", "4"],
+            pattern: ["D", "E", "D", "-"],
+            bpmTargets: [65, 95, 125],
+            objective: "Aprender que o silêncio também é música, segurando a pausa do tempo 4 sem perder o tempo 1 seguinte.",
+            tip: "No tempo 4, conte 'Qua!' mentalmente e congele as baquetas a 5cm do pad, prontas para o próximo compasso."
+          },
+          {
+            id: "1-07",
+            name: "Contratempos com Pausa na Cabeça",
+            nick: "Pulo do Gato",
+            timeSig: "4/4",
+            subdivLabel: "Colcheias Sincopadas",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&"],
+            pattern: ["D", "E", "-", "E", "D", "E", "-", "E"],
+            bpmTargets: [60, 88, 115],
+            objective: "Tocar no contratempo ('&') após uma pausa na cabeça dos tempos 2 e 4.",
+            tip: "Mantenha o movimento fantasma do pulso no ar durante as pausas para não perder a referência do '&'."
+          },
+          {
+            id: "1-08",
+            name: "Duplas em Semínima (Dois por Mão)",
+            nick: "Passos Gêmeos",
+            timeSig: "4/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&"],
+            pattern: ["D", "D", "E", "E", "D", "D", "E", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Introduzir a repetição da mesma mão em colcheias controladas a partir do pulso.",
+            tip: "Ainda não use rebote livre; articule cada um dos dois toques com o pulso limpo e redondo."
+          },
+          {
+            id: "1-09",
+            name: "Quatro por Quatro (Aquecimento de Pulso)",
+            nick: "Quatro Estações",
+            timeSig: "4/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&"],
+            pattern: ["D", "D", "D", "D", "E", "E", "E", "E"],
+            bpmTargets: [65, 100, 135],
+            objective: "Isolar o movimento de cada punho por metade inteira do compasso.",
+            tip: "Observe a mão que está descansando: ela não deve subir involuntariamente enquanto a outra trabalha."
+          },
+          {
+            id: "1-10",
+            name: "Combo de Estabilidade 2/4",
+            nick: "Sentinela da Caixa",
+            timeSig: "2/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&"],
+            pattern: [">D", "E", ">D", "-"],
+            bpmTargets: [70, 100, 130],
+            objective: "Consolidar leitura de acento e pausa dentro do compasso binário 2/4.",
+            tip: "Estabilize a postura da coluna e sinta o ciclo curto de 2 tempos repetir sem correr na pausa."
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "Semicolcheias e Acentos",
+        subtitle: "Compasso 4/4 • Single Stroke Roll e Grid de Acentos (1 e & a)",
+        exercises: [
+          {
+            id: "2-01",
+            name: "Single Stroke Roll Contínuo (1 e & a)",
+            nick: "O Trem-Bala",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", "D", "E", "D", "E", "D", "E", "D", "E", "D", "E", "D", "E", "D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Subdividir cada tempo em 4 partes iguais com fluxo uniforme de toques simples.",
+            tip: "Cante em voz alta '1-e-&-a' para garantir que as 4 notas estejam perfeitamente espaçadas."
+          },
+          {
+            id: "2-02",
+            name: "Acento na Cabeça do Tempo (Downbeat)",
+            nick: "Martelo de Thor",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "E", ">D", "E", "D", "E", ">D", "E", "D", "E", ">D", "E", "D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Destacar o primeiro toque de cada grupo de 4 semicolcheias com a mão direita.",
+            tip: "Use o golpe 'Downstroke' na nota acentuada: a baqueta bate forte e já freia baixa perto do pad."
+          },
+          {
+            id: "2-03",
+            name: "Deslocamento de Acento para o 'e'",
+            nick: "Solavanco naEsquerda",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", ">E", "D", "E", "D", ">E", "D", "E", "D", ">E", "D", "E", "D", ">E", "D", "E"],
+            bpmTargets: [50, 80, 110],
+            objective: "Acentuar a segunda semicolcheia ('e') de cada tempo com a mão esquerda.",
+            tip: "Prepare a mão esquerda levantando-a no '1' (Upstroke) para que o acento no 'e' saia sem esforço."
+          },
+          {
+            id: "2-04",
+            name: "Deslocamento de Acento para o '&' (Upbeat)",
+            nick: "Gangorra de Contratempo",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", ">D", "E", "D", "E", ">D", "E", "D", "E", ">D", "E", "D", "E", ">D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Colocar a ênfase exatamente no meio de cada tempo ('&') com a mão direita.",
+            tip: "Não deixe o acento no '&' enganar seu ouvido virando a cabeça do tempo; sinta o clique do metrônomo no '1'."
+          },
+          {
+            id: "2-05",
+            name: "Deslocamento de Acento para o 'a'",
+            nick: "Chicote na Cauda",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", "D", ">E", "D", "E", "D", ">E", "D", "E", "D", ">E", "D", "E", "D", ">E"],
+            bpmTargets: [50, 80, 110],
+            objective: "Dominar o acento na última semicolcheia ('a') com a mão esquerda sem puxar o tempo seguinte.",
+            tip: "Após o acento forte da esquerda no 'a', a direita no '1' seguinte deve ser baixa e controlada!"
+          },
+          {
+            id: "2-06",
+            name: "Acentos Duplos (1 e &)",
+            nick: "Batida Dupla",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", ">D", "E", ">D", "E", ">D", "E", ">D", "E", ">D", "E", ">D", "E", ">D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Manter a mão direita em nível alto (acento) e a esquerda em nível baixo durante todo o compasso.",
+            tip: "Visualize duas alturas paralelas: baqueta direita sempre alta, baqueta esquerda sempre rente ao pad."
+          },
+          {
+            id: "2-07",
+            name: "Acentos Consecutivos Direita-Esquerda (1 e)",
+            nick: "Socos Gêmeos",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", ">E", "D", "E", ">D", ">E", "D", "E", ">D", ">E", "D", "E", ">D", ">E", "D", "E"],
+            bpmTargets: [55, 85, 110],
+            objective: "Executar dois acentos seguidos seguidos de duas notas baixas em cada tempo.",
+            tip: "Ambas as mãos fazem Downstroke nos dois primeiros toques e descansam nas duas últimas semicolcheias."
+          },
+          {
+            id: "2-08",
+            name: "Galope Clássico (Colcheia + 2 Semicolcheias)",
+            nick: "Cavalaria de Ferro",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (Galope)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "-", "D", "E", ">D", "-", "D", "E", ">D", "-", "D", "E", ">D", "-", "D", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Tocar a célula clássica '1 & a' omitindo a segunda semicolcheia ('e').",
+            tip: "Mantenha a fluidez de punho como se estivesse tocando todas as semicolcheias, apenas omitindo o 'e'."
+          },
+          {
+            id: "2-09",
+            name: "Galope Reverso (2 Semicolcheias + Colcheia)",
+            nick: "Freio de Cavalo",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (Galope Inv.)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", ">D", "-", "D", "E", ">D", "-", "D", "E", ">D", "-", "D", "E", ">D", "-"],
+            bpmTargets: [60, 90, 120],
+            objective: "Atacar '1 e &' com parada firme no '&' e silêncio no 'a'.",
+            tip: "Crave o acento do '&' sem correr nas duas primeiras semicolcheias."
+          },
+          {
+            id: "2-10",
+            name: "Acento Móvel Itinerante (Grid Completo)",
+            nick: "O Viajante do Tempo",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "E", "D", ">E", "D", "E", "D", "E", ">D", "E", "D", "E", "D", ">E"],
+            bpmTargets: [50, 80, 108],
+            objective: "Mover o acento progressivamente pelo 1, pelo 'e', pelo '&' e pelo 'a' dentro do mesmo compasso.",
+            tip: "Exercício supremo do Módulo 2! Leia a grade visual com calma e antecipe qual mão fará o próximo acento."
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "Toques Duplos e Rebote (Mamãe-Papai)",
+        subtitle: "Double Stroke Roll • Controle de Segundo Toque e Resistência",
+        exercises: [
+          {
+            id: "3-01",
+            name: "Double Stroke Roll Base (D D E E)",
+            nick: "Mamãe-Papai Clássico",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", "D", "D", "E", "E", "D", "D", "E", "E", "D", "D", "E", "E"],
+            bpmTargets: [55, 85, 120],
+            objective: "Dominar o rulo de toques duplos mantendo as duas notas de cada mão com o mesmo volume.",
+            tip: "No primeiro toque use o pulso; no segundo toque feche suavemente os dedos médios e anelares (Snap)."
+          },
+          {
+            id: "3-02",
+            name: "Double Stroke Liderado pela Esquerda (E E D D)",
+            nick: "Papai-Mamãe Canhoto",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["E", "E", "D", "D", "E", "E", "D", "D", "E", "E", "D", "D", "E", "E", "D", "D"],
+            bpmTargets: [55, 85, 115],
+            objective: "Equilibrar a resposta de rebote começando o ciclo pela mão esquerda.",
+            tip: "Não esmague a baqueta contra o pad no primeiro toque da esquerda; deixe a ponta respirar e quicar."
+          },
+          {
+            id: "3-03",
+            name: "Duplos Invertidos (D E E D / E D D E)",
+            nick: "Sanduíche de Rebote",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", "E", "D", "E", "D", "D", "E", "D", "E", "E", "D", "E", "D", "D", "E"],
+            bpmTargets: [50, 80, 110],
+            objective: "Deslocar o par de toques duplos para o meio do tempo ('e &') e na virada do tempo ('a 1').",
+            tip: "Esse padrão obriga o segundo toque a atravessar a cabeça do tempo; mantenha o pulso firme no metrônomo."
+          },
+          {
+            id: "3-04",
+            name: "Acento no Segundo Toque do Duplo",
+            nick: "O Segredo dos Mestres",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", ">D", "E", ">E", "D", ">D", "E", ">E", "D", ">D", "E", ">E", "D", ">D", "E", ">E"],
+            bpmTargets: [50, 78, 105],
+            objective: "Fortalecer o segundo golpe de cada mão para eliminar duplos fracos ou desiguais.",
+            tip: "Para acentuar o 2º toque, o 1º é um toque preparatório com o pulso e o 2º é uma chicotada de dedos!"
+          },
+          {
+            id: "3-05",
+            name: "Transição Simples para Duplos (2+2 Tempos)",
+            nick: "Câmbio Automático",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", "D", "E", "D", "E", "D", "E", "D", "D", "E", "E", "D", "D", "E", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Alternar entre Single Stroke (tempos 1-2) e Double Stroke (tempos 3-4) sem alterar a velocidade.",
+            tip: "O ouvinte de olhos fechados não deve notar diferença de volume ou andamento quando você muda de simples para duplo."
+          },
+          {
+            id: "3-06",
+            name: "Explosão Curta de 3 Toques (D D E / E E D)",
+            nick: "Faísca Tripla",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", ">E", "-", "E", "E", ">D", "-", "D", "D", ">E", "-", "E", "E", ">D", "-"],
+            bpmTargets: [55, 85, 115],
+            objective: "Preparar a mecânica dos rulos curtos soltando um duplo rápido que resolve num acento na outra mão.",
+            tip: "Imagine que os dois primeiros toques são uma rampa de lançamento para o acento do '&'."
+          },
+          {
+            id: "3-07",
+            name: "Double Beat Clássico de Drumline",
+            nick: "Bateria Universitária",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "D", "-", "E", "E", "E", "-", "D", "D", "E", "E", "D", "D", ">E", "-"],
+            bpmTargets: [60, 90, 118],
+            objective: "Desenvolver resistência de três toques por mão combinados com toques duplos.",
+            tip: "Mantenha os três toques da mesma mão na mesma altura de baqueta, usando rebote elástico."
+          },
+          {
+            id: "3-08",
+            name: "Duplos Acentuados na Cabeça",
+            nick: "Quique Pesado",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "D", ">E", "E", ">D", "D", ">E", "E", ">D", "D", ">E", "E", ">D", "D", ">E", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Controlar o rebote após um ataque acentuado sem que o segundo toque saia descontrolado.",
+            tip: "Após o impacto forte do primeiro toque, amorteça a subida com os dedos para que o segundo toque saia macio."
+          },
+          {
+            id: "3-09",
+            name: "Sprint de Duplos em 2/4",
+            nick: "Turbina Dupla",
+            timeSig: "2/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a"],
+            pattern: ["D", "E", "D", "E", "D", "D", "E", "E"],
+            bpmTargets: [65, 95, 128],
+            objective: "Ciclo rápido de 1 tempo em simples e 1 tempo em duplos dentro do compasso 2/4.",
+            tip: "Ideal para usar com a ferramenta 'Escada +5 BPM' e descobrir seu limite limpo de velocidade."
+          },
+          {
+            id: "3-10",
+            name: "Maratona Mamãe-Papai com Acento Final",
+            nick: "Rolo Compressor",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", "D", "D", "E", "E", "D", "D", "E", "E", ">D", "E", ">D", "-"],
+            bpmTargets: [60, 92, 125],
+            objective: "Sustentar 3 tempos de duplos contínuos e fechar o compasso com fraseado acentuado.",
+            tip: "Relaxe o maxilar e respire normalmente enquanto os duplos rolam nos 3 primeiros tempos."
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "A Família dos Paradiddles",
+        subtitle: "Single, Invertido, Reverso, Interno, Double e Triple Paradiddle",
+        exercises: [
+          {
+            id: "4-01",
+            name: "Single Paradiddle Clássico (D E D D | E D E E)",
+            nick: "O Rei dos Rudimentos",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "D", ">E", "D", "E", "E", ">D", "E", "D", "D", ">E", "D", "E", "E"],
+            bpmTargets: [60, 90, 125],
+            objective: "Unir toques simples ('Para') e duplos ('Diddle') trocando naturalmente a mão líder a cada tempo.",
+            tip: "Logo após o acento (Downstroke), a mão oposta faz um Upstroke suave preparando o acento do próximo tempo!"
+          },
+          {
+            id: "4-02",
+            name: "Paradiddle Interno / Inward (D E E D | E D D E)",
+            nick: "Paradiddle do Meio",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "E", "D", ">E", "D", "D", "E", ">D", "E", "E", "D", ">E", "D", "D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Colocar o 'diddle' (toque duplo) nas semicolcheias centrais ('e &') de cada tempo.",
+            tip: "Sinta o balanço elástico do duplo no meio do tempo antes de voltar para a mão que iniciou."
+          },
+          {
+            id: "4-03",
+            name: "Paradiddle Reverso (D D E D | E E D E)",
+            nick: "Diddle-Para",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "D", "E", "D", ">E", "E", "D", "E", ">D", "D", "E", "D", ">E", "E", "D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Começar cada tempo com o par duplo ('D D') seguido pela alternância simples ('E D').",
+            tip: "Cuidado para não transformar o início num rulo apressado; o '1' e o 'e' têm exatamente o mesmo valor."
+          },
+          {
+            id: "4-04",
+            name: "Paradiddle Atrasado / Delayed (D E D E | D D E D)",
+            nick: "O Camaleão",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", ">D", "E", "E", "D", ">E", "D", "D", "E", ">D", "E", "E", "D", ">E", "D"],
+            bpmTargets: [50, 80, 110],
+            objective: "Posicionar o toque duplo na virada entre os tempos ('a' para o próximo número) com acento no '&'.",
+            tip: "Excelente para criar grooves funk onde o acento brilha no contratempo ('&')."
+          },
+          {
+            id: "4-05",
+            name: "Paradiddle com Acento na 2ª Semicolcheia ('e')",
+            nick: "Suíngue Torto",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", ">E", "D", "D", "E", ">D", "E", "E", "D", ">E", "D", "D", "E", ">D", "E", "E"],
+            bpmTargets: [50, 80, 110],
+            objective: "Manter a manulação tradicional do Single Paradiddle mas deslocar o acento para o 'e'.",
+            tip: "O primeiro toque na cabeça do tempo deve ser super baixo (Tap), pois a explosão vem logo em seguida no 'e'."
+          },
+          {
+            id: "4-06",
+            name: "Paradiddle com Acento no '&'",
+            nick: "Pulso Funky",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "E", ">D", "D", "E", "D", ">E", "E", "D", "E", ">D", "D", "E", "D", ">E", "E"],
+            bpmTargets: [50, 80, 110],
+            objective: "Acentuar o primeiro golpe do par duplo ('diddle') no contratempo '&'.",
+            tip: "Controle o rebote após o acento no '&' para que o 'a' seguinte saia limpo e baixo."
+          },
+          {
+            id: "4-07",
+            name: "Double Paradiddle em 4/4 (Agrupamento de 6)",
+            nick: "Polirritmia Mental",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (Frase 6+6+4)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "E", "D", "D", ">E", "D", "E", "D", "E", "E", ">D", "E", "D", "D"],
+            bpmTargets: [55, 85, 115],
+            objective: "Tocar dois Double Paradiddles (6 notas cada) seguidos de um Single Paradiddle (4 notas) fechando 16 semicolcheias.",
+            tip: "Sinta como os acentos cruzam por cima do metrônomo (6 + 6 + 4 = 16) e voltam a cravar no Tempo 1!"
+          },
+          {
+            id: "4-08",
+            name: "Triple Paradiddle Completo (D E D E D E D D)",
+            nick: "A Centopeia",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "E", "D", "E", "D", "D", ">E", "D", "E", "D", "E", "D", "E", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Executar três pares de toques simples antes do duplo, ocupando 2 tempos inteiros por lado.",
+            tip: "Excelente para viradas longas na bateria onde você quer trocar de mão líder a cada 2 tempos."
+          },
+          {
+            id: "4-09",
+            name: "Paradiddle Pyramid (Simples vs Paradiddle)",
+            nick: "Arquitetura da Pirâmide",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "E", ">D", "E", "D", "D", ">E", "D", "E", "D", ">E", "D", "E", "E"],
+            bpmTargets: [58, 88, 118],
+            objective: "Combinar 1 tempo de Single Stroke com 1 tempo de Paradiddle para alternar a liderança a cada meio compasso.",
+            tip: "Observe que os tempos 1 e 2 começam com Direita, e os tempos 3 e 4 começam com Esquerda."
+          },
+          {
+            id: "4-10",
+            name: "Combo Mestre das 4 Permutações de Paradiddle",
+            nick: "Quarteto Fantástico",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "D", ">E", "D", "D", "E", ">D", "D", "E", "D", ">E", "D", "E", "E"],
+            bpmTargets: [50, 80, 110],
+            objective: "Encadear Normal, Interno e Reverso num único compasso desafiador para o cérebro.",
+            tip: "Leia letra por letra em andamento lento (50 BPM) antes de acelerar."
+          }
+        ]
+      },
+      {
+        id: 5,
+        title: "Tercinas e Compassos Compostos",
+        subtitle: "Compassos 3/4, 6/8, 12/8 e 4/4 • Divisão Ternária e Paradiddle-diddle",
+        exercises: [
+          {
+            id: "5-01",
+            name: "Single Stroke Triplets em 4/4",
+            nick: "Onda Ternária",
+            timeSig: "4/4",
+            subdivLabel: "Tercinas (3 por tempo)",
+            stepsPerBeat: 3,
+            counts: ["1", "trip", "let", "2", "trip", "let", "3", "trip", "let", "4", "trip", "let"],
+            pattern: [">D", "E", "D", ">E", "D", "E", ">D", "E", "D", ">E", "D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Dividir cada tempo do compasso 4/4 em 3 partes iguais alternando a mão do acento.",
+            tip: "Como 3 é ímpar, a cabeça de cada tempo alterna naturalmente: 1=Direita, 2=Esquerda, 3=Direita, 4=Esquerda."
+          },
+          {
+            id: "5-02",
+            name: "Valsa Rítmica em 3/4 com Tercinas",
+            nick: "Valente Ternário",
+            timeSig: "3/4",
+            subdivLabel: "Tercinas (3 por tempo)",
+            stepsPerBeat: 3,
+            counts: ["1", "trip", "let", "2", "trip", "let", "3", "trip", "let"],
+            pattern: [">D", "E", "D", "E", "D", "E", ">D", "D", "E"],
+            bpmTargets: [60, 88, 115],
+            objective: "Sentir o ciclo de 3 tempos do compasso 3/4 preenchido com tercinas fluidas.",
+            tip: "O duplo no tempo 3 ('>D D E') faz com que o compasso seguinte volte a começar com a mão Direita!"
+          },
+          {
+            id: "5-03",
+            name: "Pulso Base em 6/8 (Compasso Composto)",
+            nick: "Balanço Celta",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">D", "E", "D", ">E", "D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Compreender o compasso composto 6/8 onde há 2 grandes pulsos divididos em 3 colcheias cada (1-2-3, 4-5-6).",
+            tip: "Acentue o 1 (Direita) e o 4 (Esquerda). Sinta o balanço pendular de dois grandes tempos ternários."
+          },
+          {
+            id: "5-04",
+            name: "Double Stroke em 6/8",
+            nick: "Carrossel Duplo",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">D", "D", "E", "E", "D", "D"],
+            bpmTargets: [55, 85, 115],
+            objective: "Aplicar toques duplos sobre a grade de 6 notas criando sensação de 3 contra 2.",
+            tip: "Mantenha a contagem '1-2-3-4-5-6' firme enquanto os pares de mãos caminham por cima."
+          },
+          {
+            id: "5-05",
+            name: "Paradiddle-diddle (D E D D E E)",
+            nick: "Motor de Seis Cilindros",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">D", "E", "D", "D", "E", "E"],
+            bpmTargets: [60, 92, 125],
+            objective: "Dominar o Paradiddle-diddle (1 simples + 2 duplos = 6 notas), um dos rudimentos mais usados em viradas.",
+            tip: "Como termina em 'E E', ele sempre recomeça na mão Direita! Use o botão 'Inverter Mãos' para treinar a versão canhota."
+          },
+          {
+            id: "5-06",
+            name: "Paradiddle-diddle Liderado pela Esquerda",
+            nick: "Turbina Canhota",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">E", "D", "E", "E", "D", "D"],
+            bpmTargets: [55, 88, 120],
+            objective: "Equilibrar o Paradiddle-diddle iniciando pela mão esquerda ('E D E E D D').",
+            tip: "Capriche na clareza do duplo 'E E' nos tempos 3 e 4 do compasso 6/8."
+          },
+          {
+            id: "5-07",
+            name: "Double Paradiddle em 6/8 (D E D E D D)",
+            nick: "Dança Afro-Cubana",
+            timeSig: "6/8",
+            subdivLabel: "Semicolcheias em 6/8 (12 notas)",
+            stepsPerBeat: 6,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&", "5", "&", "6", "&"],
+            pattern: [">D", "E", "D", "E", "D", "D", ">E", "D", "E", "D", "E", "E"],
+            bpmTargets: [50, 75, 100],
+            objective: "Encaixar o Double Paradiddle de 6 notas perfeitamente em cada metade do compasso 6/8.",
+            tip: "A primeira metade lidera com Direita e a segunda metade lidera com Esquerda."
+          },
+          {
+            id: "5-08",
+            name: "Shuffle / Swing Feel em Tercinas",
+            nick: "Blues da Meia-Noite",
+            timeSig: "4/4",
+            subdivLabel: "Tercinas (Shuffle)",
+            stepsPerBeat: 3,
+            counts: ["1", "trip", "let", "2", "trip", "let", "3", "trip", "let", "4", "trip", "let"],
+            pattern: [">D", "-", "E", ">D", "-", "E", ">D", "-", "E", ">D", "-", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Omitir a nota do meio da tercina ('trip') criando o autêntico balanço de Shuffle / Jazz.",
+            tip: "Sinta a nota 'let' como um trampolim suave que impulsiona o acento da cabeça do próximo tempo."
+          },
+          {
+            id: "5-09",
+            name: "Groove Composto 12/8 Completo",
+            nick: "Catedral do Blues",
+            timeSig: "12/8",
+            subdivLabel: "Colcheias em 12/8 (4 pulsos x 3)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+            pattern: ["D", "E", "D", ">E", "D", "E", "D", "E", "D", ">E", "D", "D"],
+            bpmTargets: [55, 82, 110],
+            objective: "Navegar pelos 12 pulsos internos do 12/8 acentuando o backbeat nos pulsos 4 e 10 (equivalentes aos tempos 2 e 4).",
+            tip: "Nos bateria real, os pulsos 4 e 10 são o estalo da caixa nas baladas Soul e Blues!"
+          },
+          {
+            id: "5-10",
+            name: "Sextinas Explosivas (Single + Paradiddle-diddle)",
+            nick: "Relâmpago Ternário",
+            timeSig: "2/4",
+            subdivLabel: "Sextinas (6 por tempo)",
+            stepsPerBeat: 6,
+            counts: ["1", "t", "l", "&", "t", "l", "2", "t", "l", "&", "t", "l"],
+            pattern: [">D", "E", "D", "E", "D", "E", ">D", "E", "D", "D", "E", "E"],
+            bpmTargets: [45, 70, 95],
+            objective: "Combinar 1 tempo de sextina alternada com 1 tempo de Paradiddle-diddle em 2/4.",
+            tip: "Mantenha os punhos super soltos; em sextinas a leveza vale mais do que a força bruta."
+          }
+        ]
+      },
+      {
+        id: 6,
+        title: "Dinâmica e Notas Fantasmas (Ghost Notes)",
+        subtitle: "Controle de Altura de Baqueta • Sussurro (30%) vs. Trovão (100%)",
+        exercises: [
+          {
+            id: "6-01",
+            name: "Contraste Extremo: Forte vs. Fantasma",
+            nick: "Sussurro e Trovão",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "(E)", "(D)", "(E)", ">D", "(E)", "(D)", "(E)", ">D", "(E)", "(D)", "(E)", ">D", "(E)", "(D)", "(E)"],
+            bpmTargets: [55, 85, 115],
+            objective: "Tocar o tempo 1 em volume máximo e as 3 notas seguintes a apenas 2cm do pad (Ghost Notes).",
+            tip: "As notas entre parênteses '( )' devem soar como um sussurro delicado. Não levante a baqueta esquerda!"
+          },
+          {
+            id: "6-02",
+            name: "Tap-Accent com Mão Líder Alternada",
+            nick: "Onda Dinâmica",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "(E)", "(D)", "(E)", "(D)", ">E", "(D)", "(E)", ">D", "(E)", "(D)", "(E)", "(D)", ">E", "(D)", "(E)"],
+            bpmTargets: [55, 82, 110],
+            objective: "Alternar acentos na Direita (no 1) e na Esquerda (no 'e' do tempo 2) cercados por notas fantasmas.",
+            tip: "Ouça a melodia dos acentos flutuar por cima do tapete invisível das ghost notes."
+          },
+          {
+            id: "6-03",
+            name: "Groove Paradiddle Fantasma",
+            nick: "Fantasma Funk",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "(E)", "(D)", "(D)", ">E", "(D)", "(E)", "(E)", ">D", "(E)", "(D)", "(D)", ">E", "(D)", "(E)", "(E)"],
+            bpmTargets: [60, 90, 120],
+            objective: "Transformar todas as notas internas do Paradiddle em notas fantasmas ultra suaves.",
+            tip: "Quando você leva isso para a bateria (Chimbal na Direita e Caixa na Esquerda), nasce o groove de David Garibaldi!"
+          },
+          {
+            id: "6-04",
+            name: "Ghost Notes Duplas na Mão Esquerda",
+            nick: "Brisa na Caixa",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "(E)", "(E)", "D", ">E", "(E)", "D", "(E)", "D", "(E)", "(E)", "D", ">E", "(E)", "D", "(E)"],
+            bpmTargets: [55, 85, 112],
+            objective: "Simular um groove real onde a mão esquerda faz fantasmas duplos e também ataca o backbeat nos tempos 2 e 4.",
+            tip: "No tempo 2, a mão esquerda faz um acento forte ('>E') e imediatamente amortece para uma fantasma '(E)' no 'e'!"
+          },
+          {
+            id: "6-05",
+            name: "Crescendo e Decrescendo por Tempo",
+            nick: "Respiração do Vulcão",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["(D)", "(E)", "(D)", "(E)", "D", "E", "D", "E", ">D", ">E", ">D", ">E", "D", "E", "(D)", "(E)"],
+            bpmTargets: [60, 90, 120],
+            objective: "Percorrer os 3 níveis dinâmicos (Fantasma → Normal → Acento → Fantasma) dentro de 1 compasso.",
+            tip: "Suba gradativamente a altura das baquetas nos tempos 1, 2 e 3, e recolha no tempo 4."
+          },
+          {
+            id: "6-06",
+            name: "Backbeat Linear com Fantasmas",
+            nick: "Assinatura Studio",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "(E)", "D", "(E)", ">D", "(E)", "(D)", "(E)", "D", "(E)", "D", "(E)", ">D", "(E)", "(D)", "(E)"],
+            bpmTargets: [60, 92, 122],
+            objective: "Manter a mão esquerda 100% em regime de nota fantasma enquanto a direita alterna normal e acento.",
+            tip: "Sua mão esquerda não pode passar de 3 centímetros de altura durante todo o exercício."
+          },
+          {
+            id: "6-07",
+            name: "Paradiddle-diddle Sussurrado em 6/8",
+            nick: "Vento nas Folhas",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">D", "(E)", "(D)", "(D)", "(E)", "(E)"],
+            bpmTargets: [60, 90, 120],
+            objective: "Destacar apenas a nota 1 do Paradiddle-diddle e deixar as outras 5 notas como um tapete fantasma.",
+            tip: "Quanto mais baixas forem as 5 notas fantasmas, mais poderoso soará o acento no tempo 1."
+          },
+          {
+            id: "6-08",
+            name: "Inward Paradiddle Groove",
+            nick: "Pocket Secreto",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "(E)", "(E)", "D", ">E", "(D)", "(D)", "E", "D", "(E)", "(E)", "D", ">E", "(D)", "(D)", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Usar o Paradiddle Interno com duplos fantasmas para criar um groove hipnótico nos tempos 2 e 4.",
+            tip: "Repare como os tempos 1 e 3 têm peso normal ('D') e os tempos 2 e 4 explodem em acento ('>E')."
+          },
+          {
+            id: "6-09",
+            name: "Semicolcheias Fantasmas com Acentos no 'a'",
+            nick: "Emboscada Sonora",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["(D)", "(E)", "(D)", ">E", "(D)", "(E)", "(D)", ">E", "(D)", "(E)", "(D)", ">E", "(D)", "(E)", "(D)", ">E"],
+            bpmTargets: [50, 80, 110],
+            objective: "Tocar três notas fantasmas seguidas de um ataque explosivo na última semicolcheia ('a').",
+            tip: "Cuidado para o acento no 'a' não contagiar o '(D)' fantasma do tempo seguinte!"
+          },
+          {
+            id: "6-10",
+            name: "Desafio Mestre de Controle de Altura (3 Camadas)",
+            nick: "Escultor de Dinâmica",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "(E)", "D", "(E)", ">E", "(D)", "E", "(D)", ">D", "E", "(D)", "(E)", ">E", "D", "(E)", "(D)"],
+            bpmTargets: [52, 80, 108],
+            objective: "Misturar Acento, Toque Normal e Nota Fantasma exigindo domínio cirúrgico da altura das baquetas.",
+            tip: "Três alturas claras: 3cm para '( )', 12cm para Normal e 30cm para '>'."
+          }
+        ]
+      },
+      {
+        id: 7,
+        title: "Flams e Apojaturas",
+        subtitle: "Flam Alternado, Flam Tap, Flam Accent, Flamacue e Flam Paradiddle",
+        exercises: [
+          {
+            id: "7-01",
+            name: "Flam Básico Direita (eD) em Semínimas",
+            nick: "A Sombra da Baqueta",
+            timeSig: "4/4",
+            subdivLabel: "Semínimas (1 por tempo)",
+            stepsPerBeat: 1,
+            counts: ["1", "2", "3", "4"],
+            pattern: ["eD", "eD", "eD", "eD"],
+            bpmTargets: [60, 90, 120],
+            objective: "Aprender a mecânica do Flam: a apojatura ('e' minúsculo) toca uma fração antes da nota principal ('D').",
+            tip: "Posição inicial: mão esquerda baixa (3cm) e mão direita mais alta (20cm). Desça as duas juntas!"
+          },
+          {
+            id: "7-02",
+            name: "Flam Básico Esquerda (dE) em Semínimas",
+            nick: "Sombra Invertida",
+            timeSig: "4/4",
+            subdivLabel: "Semínimas (1 por tempo)",
+            stepsPerBeat: 1,
+            counts: ["1", "2", "3", "4"],
+            pattern: ["dE", "dE", "dE", "dE"],
+            bpmTargets: [60, 90, 120],
+            objective: "Executar o Flam liderado pela esquerda (apojatura suave na direita + nota principal na esquerda).",
+            tip: "O som deve parecer a palavra 'FLA-M' bem curtinha, nunca duas notas separadas ('FLA - AM') nem juntas demais."
+          },
+          {
+            id: "7-03",
+            name: "Flams Alternados (eD | dE)",
+            nick: "Passos de Gigante",
+            timeSig: "4/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&"],
+            pattern: ["eD", "dE", "eD", "dE", "eD", "dE", "eD", "dE"],
+            bpmTargets: [55, 82, 110],
+            objective: "Alternar Flams de direita e esquerda continuamente trocando a altura das mãos a cada golpe.",
+            tip: "Quem acabou de fazer a nota principal fica embaixo para virar a apojatura do próximo Flam!"
+          },
+          {
+            id: "7-04",
+            name: "Flam Accent em 6/8 (eD E D | dE D E)",
+            nick: "Trovão Celta",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">eD", "E", "D", ">dE", "D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Aplicar o Flam na cabeça de cada grupo de 3 notas dentro do compasso 6/8.",
+            tip: "No pulso 3 ('D'), a mão direita já aproveita para ficar baixa, pronta para ser a apojatura do '>dE' no 4!"
+          },
+          {
+            id: "7-05",
+            name: "Flam Tap (eD D dE E)",
+            nick: "Sapateado Duplo",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">eD", "D", ">dE", "E", ">eD", "D", ">dE", "E", ">eD", "D", ">dE", "E", ">eD", "D", ">dE", "E"],
+            bpmTargets: [50, 78, 105],
+            objective: "Tocar um Double Stroke Roll adicionando uma apojatura na primeira nota de cada par.",
+            tip: "Pense em 'Mamãe-Papai' com uma sombrinha antes de cada troca de mão."
+          },
+          {
+            id: "7-06",
+            name: "Flamacue Clássico (eD >E D E dE)",
+            nick: "Chicote Escocês",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["eD", ">E", "D", "E", "dE", "-", "dE", ">D", "E", "D", "eD", "-", "eD", ">E", "D", "dE"],
+            bpmTargets: [50, 75, 100],
+            objective: "Dominar o Flamacue: Flam sem acento no 1 seguido de acento explosivo no 'e' e resolução em Flam.",
+            tip: "O charme do Flamacue é o acento forte na segunda semicolcheia ('>E') logo após o Flam inicial."
+          },
+          {
+            id: "7-07",
+            name: "Flam Paradiddle (FlamAdiddle)",
+            nick: "Paradiddle de Gala",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">eD", "E", "D", "D", ">dE", "D", "E", "E", ">eD", "E", "D", "D", ">dE", "D", "E", "E"],
+            bpmTargets: [52, 80, 108],
+            objective: "Enriquecer o Single Paradiddle colocando um Flam acentuado na primeira nota de cada tempo.",
+            tip: "As duas notas finais ('D D' ou 'E E') devem ser bem baixas para preparar a apojatura do tempo seguinte."
+          },
+          {
+            id: "7-08",
+            name: "Swiss Army Triplet (Tercina Suíça)",
+            nick: "Guarda Suíça",
+            timeSig: "4/4",
+            subdivLabel: "Tercinas (3 por tempo)",
+            stepsPerBeat: 3,
+            counts: ["1", "trip", "let", "2", "trip", "let", "3", "trip", "let", "4", "trip", "let"],
+            pattern: [">eD", "D", "E", ">eD", "D", "E", ">dE", "E", "D", ">dE", "E", "D"],
+            bpmTargets: [55, 85, 115],
+            objective: "Fluir no Swiss Army Triplet ('eD D E'), onde o Flam desliza sobre um toque duplo.",
+            tip: "Nos tempos 1 e 2 lideramos com a Direita; nos tempos 3 e 4 invertemos para liderar com a Esquerda."
+          },
+          {
+            id: "7-09",
+            name: "Pataflafla (D E eD dE)",
+            nick: "Onomatopeia Viva",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">eD", "E", "D", ">dE", ">eD", "E", "D", ">dE", ">eD", "E", "D", ">dE", ">eD", "E", "D", ">dE"],
+            bpmTargets: [50, 76, 102],
+            objective: "Cantar e tocar 'Pa-Ta-Fla-Fla', colocando Flams no '1' e no 'a' de cada tempo.",
+            tip: "Ouça como o Flam do 'a' emenda com o Flam do '1' seguinte criando dois Flams seguidos!"
+          },
+          {
+            id: "7-10",
+            name: "Flam Paradiddle-diddle em 6/8",
+            nick: "Trovão de Seis",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">eD", "E", "D", "D", "E", "E"],
+            bpmTargets: [58, 88, 118],
+            objective: "Unir a abertura encorpada do Flam com a velocidade do Paradiddle-diddle em 6/8.",
+            tip: "Como as duas últimas notas são 'E E', sua mão esquerda já termina colada no pad para fazer a apojatura 'e'!"
+          }
+        ]
+      },
+      {
+        id: 8,
+        title: "Drags e Rulos Curtos",
+        subtitle: "Drag (Ruff), Single Drag Tap, Double Drag Tap, Lesson 25 e Drag Paradiddle",
+        exercises: [
+          {
+            id: "8-01",
+            name: "Drag Básico Direita (eeD) em Semínimas",
+            nick: "Rosnado da Caixa",
+            timeSig: "4/4",
+            subdivLabel: "Semínimas (1 por tempo)",
+            stepsPerBeat: 1,
+            counts: ["1", "2", "3", "4"],
+            pattern: ["eeD", "eeD", "eeD", "eeD"],
+            bpmTargets: [55, 85, 115],
+            objective: "Executar o Drag (Ruff): duas apojaturas rápidas na mão esquerda ('ee') coladas antes da nota direita ('D').",
+            tip: "Deixe a baqueta esquerda dar dois pequenos quiques controlados (~3cm) imediatamente antes da direita descer."
+          },
+          {
+            id: "8-02",
+            name: "Drag Básico Esquerda (ddE) em Semínimas",
+            nick: "Rosnado Canhoto",
+            timeSig: "4/4",
+            subdivLabel: "Semínimas (1 por tempo)",
+            stepsPerBeat: 1,
+            counts: ["1", "2", "3", "4"],
+            pattern: ["ddE", "ddE", "ddE", "ddE"],
+            bpmTargets: [55, 85, 115],
+            objective: "Dominar o Drag com duas apojaturas na mão direita ('dd') resolvendo na nota principal esquerda ('E').",
+            tip: "As duas notas ornamentais não devem atrasar a chegada da nota principal no clique do metrônomo."
+          },
+          {
+            id: "8-03",
+            name: "Drags Alternados em Colcheias",
+            nick: "Engrenagem Dupla",
+            timeSig: "4/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&"],
+            pattern: ["eeD", "ddE", "eeD", "ddE", "eeD", "ddE", "eeD", "ddE"],
+            bpmTargets: [50, 78, 105],
+            objective: "Alternar Drags de direita e esquerda mantendo o espaçamento das apojaturas uniforme.",
+            tip: "Pense que a nota principal está sempre cravada nos números e nos '&'; o 'ee' e o 'dd' são apenas enfeites antes."
+          },
+          {
+            id: "8-04",
+            name: "Single Drag Tap em 2/4 (eeD >E | ddE >D)",
+            nick: "Arrancada Clássica",
+            timeSig: "2/4",
+            subdivLabel: "Colcheias (2 por tempo)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&"],
+            pattern: ["eeD", ">E", "ddE", ">D"],
+            bpmTargets: [60, 90, 120],
+            objective: "Tocar o Single Drag Tap: um Drag sem acento na cabeça do tempo resolvendo num acento forte no '&'.",
+            tip: "Ouça o efeito de catapulta: 'rra-TA!' em cada tempo do compasso 2/4."
+          },
+          {
+            id: "8-05",
+            name: "Single Drag Tap Contínuo em 4/4",
+            nick: "Locomotiva Escocesa",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["eeD", ">E", "ddE", ">D", "eeD", ">E", "ddE", ">D", "eeD", ">E", "ddE", ">D", "eeD", ">E", "ddE", ">D"],
+            bpmTargets: [48, 72, 98],
+            objective: "Aplicar o Single Drag Tap em semicolcheias desenvolvendo agilidade de rebote.",
+            tip: "Comece devagar! As apojaturas 'ee' e 'dd' devem ser ultra leves para caberem entre as semicolcheias."
+          },
+          {
+            id: "8-06",
+            name: "Double Drag Tap em 6/8",
+            nick: "Dupla Catapulta",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: ["eeD", "eeD", ">E", "ddE", "ddE", ">D"],
+            bpmTargets: [50, 78, 105],
+            objective: "Executar dois Drags seguidos na mesma mão antes de explodir no acento da mão oposta.",
+            tip: "Nos pulsos 1 e 2 a mão esquerda faz 'ee' duas vezes; no pulso 3 ela finalmente desce com força ('>E')."
+          },
+          {
+            id: "8-07",
+            name: "Lesson 25 (eeD E >D)",
+            nick: "Lição 25 Tradicional",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (Galope Drag)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["eeD", "E", ">D", "-", "ddE", "D", ">E", "-", "eeD", "E", ">D", "-", "ddE", "D", ">E", "-"],
+            bpmTargets: [55, 85, 115],
+            objective: "Dominar o rudimento 'Lesson 25', uma figura galopada com Drag na primeira nota e acento no '&'.",
+            tip: "Originalmente liderado apenas por uma mão, aqui alternamos Direita e Esquerda a cada tempo para treino simétrico!"
+          },
+          {
+            id: "8-08",
+            name: "Single Dragadiddle (eeD E D D | ddE D E E)",
+            nick: "Paradiddle com Rosnado",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">eeD", "E", "D", "D", ">ddE", "D", "E", "E", ">eeD", "E", "D", "D", ">ddE", "D", "E", "E"],
+            bpmTargets: [50, 78, 105],
+            objective: "Substituir o primeiro toque do Paradiddle por um Drag acentuado.",
+            tip: "Veja como o final duplo do Paradiddle ('D D' ou 'E E') já prepara a mão para o Drag seguinte."
+          },
+          {
+            id: "8-09",
+            name: "Drag Paradiddle #1 (D eeD E D D)",
+            nick: "O Drag Nobre",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">D", "eeD", "E", "D", "D", "-"],
+            bpmTargets: [55, 82, 110],
+            objective: "Tocar um acento limpo no 1 seguido de um Paradiddle iniciado por Drag no pulso 2.",
+            tip: "Use o botão 'Inverter Mãos (D↔E)' para praticar este rudimento também começando com a esquerda."
+          },
+          {
+            id: "8-10",
+            name: "Marcha Imperial de Drags e Flams",
+            nick: "Guardião do Forte",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["eeD", ">E", "ddE", ">D", ">eD", "E", "D", "D", "ddE", ">D", "eeD", ">E", ">dE", "D", "E", "E"],
+            bpmTargets: [50, 76, 102],
+            objective: "Integrar Single Drag Tap e Flam Paradiddle num fraseado marcial completo.",
+            tip: "Diferencie claramente a apojatura simples do Flam ('eD') da apojatura dupla do Drag ('eeD')."
+          }
+        ]
+      },
+      {
+        id: 9,
+        title: "Rulos Medidos (5, 6, 7 e 9 Toques)",
+        subtitle: "Five, Six, Seven e Nine Stroke Rolls em 2/4, 3/4 e 4/4",
+        exercises: [
+          {
+            id: "9-01",
+            name: "Five Stroke Roll Aberto (5 Toques)",
+            nick: "Cinco Estrelas",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", ">D", "-", "-", "-", "E", "E", "D", "D", ">E", "-", "-", "-"],
+            bpmTargets: [65, 95, 130],
+            objective: "Compreender a anatomia do Rulo de 5 Toques: 2 duplos ('D D E E') + 1 acento final ('>D').",
+            tip: "Conte as 5 notas com clareza: 1-2-3-4-5! O quinto toque cai cravado na cabeça dos tempos 2 e 4."
+          },
+          {
+            id: "9-02",
+            name: "Five Stroke Roll Contínuo em 2/4",
+            nick: "Rajada de Cinco",
+            timeSig: "2/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", ">D", "-", "E", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Conectar o Rulo de 5 toques em ciclo curto de 2/4.",
+            tip: "Mantenha os duplos relaxados para que o acento na cabeça do tempo 2 saia limpo."
+          },
+          {
+            id: "9-03",
+            name: "Six Stroke Roll (Rulo de 6 Toques)",
+            nick: "O Queridinho do Groove",
+            timeSig: "6/8",
+            subdivLabel: "Colcheias em 6/8 (6 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6"],
+            pattern: [">D", "E", "E", "D", "D", ">E"],
+            bpmTargets: [55, 85, 118],
+            objective: "Dominar o Six Stroke Roll ('>D E E D D >E'), famoso por colocar acentos nas pontas e duplos no meio.",
+            tip: "Cante 'TA - ka-ka - ta-ta - TA!'. Os pulsos 1 e 6 são acentos simples e o miolo (2-3-4-5) são duplos suaves."
+          },
+          {
+            id: "9-04",
+            name: "Six Stroke Roll em Semicolcheias (4/4)",
+            nick: "Hélice de Seis Pás",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "E", "D", "D", ">E", ">D", "E", "E", "D", "D", ">E", ">D", "E", ">D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Deslocar dois Six Stroke Rolls sobre as semicolcheias do 4/4 e fechar o compasso com 4 toques simples.",
+            tip: "Sinta a sincopa emocionante quando o segundo Six Stroke Roll começa no '&' do tempo 2!"
+          },
+          {
+            id: "9-05",
+            name: "Seven Stroke Roll (7 Toques Liderado pela Direita)",
+            nick: "Sete Mares",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", "D", "D", ">E", "-", "D", "D", "E", "E", "D", "D", ">E", "-"],
+            bpmTargets: [60, 90, 122],
+            objective: "Executar 3 pares de duplos ('D D E E D D') finalizando na 7ª nota acentuada ('>E') no '&' dos tempos 2 e 4.",
+            tip: "Três duplos + 1 acento = 7 toques! Repare que começa na Direita e termina acentuando na Esquerda."
+          },
+          {
+            id: "9-06",
+            name: "Seven Stroke Roll Liderado pela Esquerda",
+            nick: "Sete Mares Canhoto",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["E", "E", "D", "D", "E", "E", ">D", "-", "E", "E", "D", "D", "E", "E", ">D", "-"],
+            bpmTargets: [60, 90, 120],
+            objective: "Traduzir o Rulo de 7 Toques começando com a esquerda ('E E D D E E >D'), muito usado na tradição militar.",
+            tip: "Iniciar o rulo de 7 com a mão esquerda faz com que o acento final caia confortavelmente na mão Direita!"
+          },
+          {
+            id: "9-07",
+            name: "Nine Stroke Roll (Rulo de 9 Toques)",
+            nick: "Onda de Nove Metros",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", "D", "D", "E", "E", ">D", "-", "-", "-", ">E", "-", ">D", "-"],
+            bpmTargets: [60, 92, 125],
+            objective: "Sustentar 4 pares de toplos (8 semicolcheias inteiras nos tempos 1 e 2) resolvendo no 9º toque no Tempo 3.",
+            tip: "Conte os pulsos principais ('1 e & a 2 e & a 3!') em vez de tentar contar de 1 até 9 rapidamente."
+          },
+          {
+            id: "9-08",
+            name: "Rulos de 5 e 7 em Compasso 3/4",
+            nick: "Valsa Imperial",
+            timeSig: "3/4",
+            subdivLabel: "Semicolcheias em 3/4 (12 notas)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", ">D", "-", "E", "E", "D", "D", "E", "E"],
+            bpmTargets: [58, 86, 115],
+            objective: "Praticar rulos medidos dentro da estrutura de 3 tempos do compasso 3/4.",
+            tip: "O último duplo no final do tempo 3 se conecta diretamente com o '>D' quando o compasso reinicia no 1!"
+          },
+          {
+            id: "9-09",
+            name: "Combinação 5 + 5 + 9 (Clássico de Caixa)",
+            nick: "Cadência de Honra",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", ">D", "-", "E", "E", "D", "D", ">E", "-", "D", "D", "E", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Encadear dois Five Stroke Rolls nos tempos 1 a 3 e iniciar a ponte de duplos no tempo 4.",
+            tip: "Mantenha a altura dos duplos em 8cm e os acentos em 25cm para o fraseado saltar aos ouvidos."
+          },
+          {
+            id: "9-10",
+            name: "Escada dos Rulos (5, 6 e 7 no Mesmo Compasso)",
+            nick: "Trilogia do Rebote",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: ["D", "D", "E", "E", ">D", "E", "E", "D", "D", ">E", "D", "D", "E", "E", "D", "D"],
+            bpmTargets: [55, 85, 115],
+            objective: "Conectar rulos sem pausas usando acentos internos como pontos de apoio.",
+            tip: "Relaxe o antebraço: os acentos são os pilares e os duplos são pontes de rebote entre eles."
+          }
+        ]
+      },
+      {
+        id: 10,
+        title: "Desafios Lúdicos e Combinações Híbridas",
+        subtitle: "Compassos Ímpares (5/4), Modulação Rítmica, Híbridos e Maratona do Mestre",
+        exercises: [
+          {
+            id: "10-01",
+            name: "Missão Impossível em 5/4 (Agrupamento 3+2)",
+            nick: "Agente Secreto 5/4",
+            timeSig: "5/4",
+            subdivLabel: "Colcheias em 5/4 (10 por comp.)",
+            stepsPerBeat: 2,
+            counts: ["1", "&", "2", "&", "3", "&", "4", "&", "5", "&"],
+            pattern: [">D", "E", "D", ">E", "D", "E", ">D", "E", ">D", "E"],
+            bpmTargets: [60, 90, 120],
+            objective: "Dominar o compasso ímpar 5/4 sentindo a subdivisão clássica de 3 tempos + 2 tempos.",
+            tip: "Cante os acentos: 'UM-e-dois-E-três-e | QUATRO-e-CINCO-e'. É a base do tema de Take Five / Mission Impossible!"
+          },
+          {
+            id: "10-02",
+            name: "Paradiddles em 5/4 (20 Semicolcheias)",
+            nick: "Labirinto de Cinco Portas",
+            timeSig: "5/4",
+            subdivLabel: "Semicolcheias em 5/4 (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1","e","&","a","2","e","&","a","3","e","&","a","4","e","&","a","5","e","&","a"],
+            pattern: [">D","E","D","D",">E","D","E","E",">D","E","D","D",">E","D","E","E",">D","E","D","E"],
+            bpmTargets: [55, 82, 110],
+            objective: "Tocar 4 Single Paradiddles nos tempos 1 a 4 e usar um Single Stroke no tempo 5 para inverter a liderança.",
+            tip: "Sem o Single Stroke no tempo 5, um compasso 5/4 de paradiddles inverteria a mão a cada volta."
+          },
+          {
+            id: "10-03",
+            name: "Híbrido: Herta em Semicolcheias",
+            nick: "Metralhadora Herta",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", "-", ">E", "D", "E", "-", ">D", "E", "D", ">E", "D", "E", ">D", "-"],
+            bpmTargets: [60, 90, 120],
+            objective: "Introduzir a célula rápida de 3 notas alternadas seguida de espaço, base do rudimento híbrido Herta.",
+            tip: "Mantenha os punhos firmes e agressivos; muito utilizado em viradas de Rock e Prog Metal."
+          },
+          {
+            id: "10-04",
+            name: "Blushda (Flam + Duplo Interno)",
+            nick: "O Trovão de Tony Williams",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">eD", "D", "E", ">dE", "E", "D", ">eD", "D", "E", ">dE", "E", "D", ">eD", "E", ">dE", "D"],
+            bpmTargets: [48, 74, 100],
+            objective: "Praticar o famoso rudimento híbrido 'Blushda', onde a mão da nota principal do Flam emenda um toque duplo.",
+            tip: "Cante 'BLUSH-da' a cada grupo de 3 notas e feche o tempo 4 com Flams alternados."
+          },
+          {
+            id: "10-05",
+            name: "Pirâmide Rítmica em 3/4 (Simples, Duplo e Paradiddle)",
+            nick: "Triângulo de Ouro",
+            timeSig: "3/4",
+            subdivLabel: "Semicolcheias em 3/4 (12 notas)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a"],
+            pattern: [">D", "E", "D", "E", ">D", "D", "E", "E", ">D", "E", "D", "D"],
+            bpmTargets: [60, 88, 118],
+            objective: "Trocar de rudimento a cada tempo do compasso 3/4: Tempo 1 = Simples, Tempo 2 = Duplo, Tempo 3 = Paradiddle.",
+            tip: "Mantenha a velocidade da semicolcheia idêntica nas 3 mudanças de mecânica."
+          },
+          {
+            id: "10-06",
+            name: "Fusão Flam + Ghost Notes + Drag",
+            nick: "Alquimia Sonora",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">eD", "(E)", "(D)", "(D)", ">dE", "(D)", "(E)", "(E)", "eeD", ">E", "ddE", ">D", ">eD", "(E)", ">dE", "(D)"],
+            bpmTargets: [50, 75, 100],
+            objective: "Combinar Flams acentuados, notas fantasmas e Drags dentro de um único compasso expressivo.",
+            tip: "Observe a riqueza de timbres: você está usando todos os 4 sons sintetizados do pad em uma só frase!"
+          },
+          {
+            id: "10-07",
+            name: "Polirritmia 3 contra 4 em Semicolcheias",
+            nick: "Ilusão de Ótica Rítmica",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (Frases de 3)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">D", "E", "D", ">E", "D", "E", ">D", "E", "D", ">E", "D", "E", ">D", "E", ">D", "E"],
+            bpmTargets: [55, 85, 115],
+            objective: "Agrupar as semicolcheias de 3 em 3 (3+3+3+3+4 = 16) usando Single Stroke Roll.",
+            tip: "Os acentos caminham entre Direita e Esquerda a cada 3 semicolcheias enquanto seu pé marca o 4/4."
+          },
+          {
+            id: "10-08",
+            name: "Groove Composto 12/8 com Flams e Rulo de 6",
+            nick: "Tempestade no Estúdio",
+            timeSig: "12/8",
+            subdivLabel: "Colcheias em 12/8 (12 por comp.)",
+            stepsPerBeat: 3,
+            counts: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+            pattern: [">eD", "(E)", "(D)", ">dE", "(D)", "(E)", ">D", "E", "E", "D", "D", ">E"],
+            bpmTargets: [52, 80, 108],
+            objective: "Tocar metade do compasso 12/8 em Flam Accent fantasma e a segunda metade num Six Stroke Roll explosivo.",
+            tip: "A transição do pulso 6 para o 7 é como abrir os portões de uma virada de bateria."
+          },
+          {
+            id: "10-09",
+            name: "Desafio 5/4 de Rulos e Paradiddles",
+            nick: "O Enigma da Esfinge",
+            timeSig: "5/4",
+            subdivLabel: "Semicolcheias em 5/4 (20 notas)",
+            stepsPerBeat: 4,
+            counts: ["1","e","&","a","2","e","&","a","3","e","&","a","4","e","&","a","5","e","&","a"],
+            pattern: [">D","E","E","D","D",">E",">D","E","D","D",">E","D","E","E","eeD",">E","ddE",">D",">eD",">dE"],
+            bpmTargets: [48, 72, 96],
+            objective: "Viajar por Six Stroke Roll, Paradiddle, Single Drag Tap e Flams dentro de um compasso 5/4.",
+            tip: "Divida em blocos mentais: Tempos 1-3 (Rulo + Paradiddles) e Tempos 4-5 (Drags + Flams)."
+          },
+          {
+            id: "10-10",
+            name: "Maratona Final do Mestre dos Rudimentos",
+            nick: "Coroação do Mestre (#100)",
+            timeSig: "4/4",
+            subdivLabel: "Semicolcheias (4 por tempo)",
+            stepsPerBeat: 4,
+            counts: ["1", "e", "&", "a", "2", "e", "&", "a", "3", "e", "&", "a", "4", "e", "&", "a"],
+            pattern: [">eD", "(E)", "D", "D", "eeD", ">E", "(D)", "(E)", ">D", "E", "E", "D", "D", ">E", ">eD", ">dE"],
+            bpmTargets: [55, 85, 115],
+            objective: "O exame definitivo: Flam Paradiddle Fantasma + Drag Tap + Six Stroke Roll + Flams Finais no mesmo compasso!",
+            tip: "Domine este exercício no BPM Mestre (115 BPM) com relaxamento total e reivindique sua coroa na DrumPad Academy!"
+          }
+        ]
+      }
+    ];
+
+    /********************************************************************
+     * 2. ESTADO DA APLICAÇÃO & GAMIFICAÇÃO (LOCALSTORAGE)
+     ********************************************************************/
+    const STORAGE_KEY = "drumpad_academy_save_v1";
+
+    const RANKS = [
+      { minXP: 0, name: "Aprendiz de Baqueta", icon: "🥢" },
+      { minXP: 300, name: "Guardião do Tempo", icon: "⏱️" },
+      { minXP: 800, name: "Arquiteto do Groove", icon: "🏗️" },
+      { minXP: 1600, name: "Virtuoso do Pad", icon: "🔥" },
+      { minXP: 2800, name: "Mestre dos Rudimentos", icon: "👑" }
+    ];
+
+    let appState = {
+      xp: 0,
+      masteredIds: [],
+      selectedExId: "1-01",
+      bpm: 80,
+      padVolume: 0.9,
+      metroVolume: 0.7,
+      invertHands: false,
+      countInEnabled: true,
+      speedLadderEnabled: false,
+      isPlaying: false
+    };
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (typeof parsed.xp === "number") appState.xp = parsed.xp;
+          if (Array.isArray(parsed.masteredIds)) appState.masteredIds = parsed.masteredIds;
+          if (parsed.selectedExId) appState.selectedExId = parsed.selectedExId;
+        }
+      } catch (e) {
+        console.warn("Aviso ao ler localStorage:", e);
+      }
+    }
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            xp: appState.xp,
+            masteredIds: appState.masteredIds,
+            selectedExId: appState.selectedExId
+          })
+        );
+      } catch (e) {
+        console.warn("Aviso ao salvar localStorage:", e);
+      }
+    }
+
+    function addXP(amount) {
+      appState.xp += amount;
+      saveProgress();
+      updateGamificationHeader();
+    }
+
+    function getRankForXP(xp) {
+      let current = RANKS[0];
+      for (const r of RANKS) {
+        if (xp >= r.minXP) current = r;
+      }
+      return current;
+    }
+
+    /********************************************************************
+     * 3. MOTOR DE SÍNTESE SONORA (WEB AUDIO API + LOOKAHEAD SCHEDULER)
+     ********************************************************************/
+    let audioCtx = null;
+    let noiseBuffer = null;
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+        createNoiseBuffer();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+    }
+
+    // Cria buffer de ruído branco para simular a esteira/pele do pad de estudo
+    function createNoiseBuffer() {
+      const sampleRate = audioCtx.sampleRate;
+      const bufferSize = sampleRate * 0.25; // 250ms de ruído
+      noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+    }
+
+    /**
+     * Sintetiza o som de um toque de baqueta no pad:
+     * @param {number} time - Tempo agendado no AudioContext
+     * @param {'accent'|'normal'|'ghost'|'grace'} dynamic - Tipo dinâmico do golpe
+     * @param {'D'|'E'} hand - Mão Direita (levemente mais aguda) ou Esquerda (levemente mais grave)
+     */
+    function triggerPadSound(time, dynamic, hand) {
+      if (!audioCtx || appState.padVolume <= 0.001) return;
+
+      const volScale =
+        dynamic === "accent"
+          ? 1.0
+          : dynamic === "normal"
+          ? 0.65
+          : dynamic === "ghost"
+          ? 0.24 // ~30% da intensidade normal
+          : 0.28; // grace note (Flam / Drag)
+
+      const masterGain = appState.padVolume * volScale;
+
+      // Diferença sutil de pitch entre mão Direita e Esquerda para percepção estéreo/auditiva realista
+      const handPitchOffset = hand === "D" ? 8 : -6;
+
+      // 1. Corpo do Pad (Oscilador Triangle com pitch drop rápido)
+      const osc = audioCtx.createOscillator();
+      const oscGain = audioCtx.createGain();
+      osc.type = "triangle";
+
+      const startFreq = (dynamic === "accent" ? 235 : 195) + handPitchOffset;
+      const endFreq = (dynamic === "accent" ? 112 : 98) + handPitchOffset * 0.5;
+      const decayTime = dynamic === "accent" ? 0.095 : dynamic === "ghost" ? 0.045 : 0.07;
+
+      osc.frequency.setValueAtTime(startFreq, time);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, time + decayTime);
+
+      oscGain.gain.setValueAtTime(0.0001, time);
+      oscGain.gain.linearRampToValueAtTime(masterGain * 0.85, time + 0.002);
+      oscGain.gain.exponentialRampToValueAtTime(0.0001, time + decayTime);
+
+      osc.connect(oscGain);
+      oscGain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + decayTime + 0.01);
+
+      // 2. Ataque da Ponta de Madeira + Esteira (Filtro Bandpass sobre Ruído Branco)
+      if (noiseBuffer) {
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(
+          dynamic === "accent" ? 2800 : dynamic === "ghost" ? 1400 : 2100,
+          time
+        );
+        filter.Q.setValueAtTime(dynamic === "accent" ? 1.4 : 2.1, time);
+
+        const noiseGain = audioCtx.createGain();
+        const noiseDecay = dynamic === "accent" ? 0.075 : dynamic === "ghost" ? 0.032 : 0.052;
+        noiseGain.gain.setValueAtTime(0.0001, time);
+        noiseGain.gain.linearRampToValueAtTime(masterGain * (dynamic === "accent" ? 0.95 : 0.65), time + 0.0015);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, time + noiseDecay);
+
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+
+        noise.start(time);
+        noise.stop(time + noiseDecay + 0.01);
+      }
+
+      // 3. Estalo extra (Click de baqueta) exclusivo para Acentos (>)
+      if (dynamic === "accent") {
+        const snapOsc = audioCtx.createOscillator();
+        const snapGain = audioCtx.createGain();
+        snapOsc.type = "sine";
+        snapOsc.frequency.setValueAtTime(1450 + handPitchOffset * 4, time);
+        snapOsc.frequency.exponentialRampToValueAtTime(320, time + 0.018);
+
+        snapGain.gain.setValueAtTime(masterGain * 0.6, time);
+        snapGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.02);
+
+        snapOsc.connect(snapGain);
+        snapGain.connect(audioCtx.destination);
+        snapOsc.start(time);
+        snapOsc.stop(time + 0.022);
+      }
+    }
+
+    /**
+     * Sintetiza o Clique do Metrônomo Inteligente
+     * @param {number} time - Tempo no AudioContext
+     * @param {'downbeat'|'beat'|'sub'} clickType - Cabeça do compasso, tempo normal ou subdivisão
+     */
+    function triggerMetronomeClick(time, clickType) {
+      if (!audioCtx || appState.metroVolume <= 0.001) return;
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = "sine";
+      const freq = clickType === "downbeat" ? 1320 : clickType === "beat" ? 880 : 620;
+      const amp =
+        appState.metroVolume *
+        (clickType === "downbeat" ? 0.55 : clickType === "beat" ? 0.35 : 0.14);
+
+      osc.frequency.setValueAtTime(freq, time);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.65, time + 0.028);
+
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.linearRampToValueAtTime(amp, time + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.032);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.035);
+    }
+
+    /********************************************************************
+     * 4. PARSER DE TOKENS DE MANULAÇÃO E FÓRMULAS DE COMPASSO
+     ********************************************************************/
+    function invertHandChar(ch) {
+      if (ch === "D") return "E";
+      if (ch === "E") return "D";
+      if (ch === "d") return "e";
+      if (ch === "e") return "d";
+      return ch;
+    }
+
+    /**
+     * Analisa um token como ">eD", "(E)", "eeD", "D", "-" e retorna objeto estruturado
+     */
+    function parseNoteToken(rawToken, invert = false) {
+      let token = rawToken.trim();
+      if (invert) {
+        token = token
+          .split("")
+          .map((c) => invertHandChar(c))
+          .join("");
+      }
+
+      if (token === "-") {
+        return {
+          isRest: true,
+          hand: "P",
+          dynamic: "rest",
+          ornament: "none",
+          graceHand: null,
+          displayMain: "—",
+          displayGrace: "",
+          isAccent: false
+        };
+      }
+
+      let isAccent = false;
+      let isGhost = false;
+
+      if (token.startsWith(">")) {
+        isAccent = true;
+        token = token.slice(1);
+      }
+      if (token.startsWith("(") && token.endsWith(")")) {
+        isGhost = true;
+        token = token.slice(1, -1);
+      }
+
+      let ornament = "none";
+      let graceHand = null;
+      let mainHand = "D";
+
+      if (token.startsWith("ee") || token.startsWith("dd")) {
+        ornament = "drag";
+        graceHand = token[0].toUpperCase(); // 'E' ou 'D'
+        mainHand = token.slice(2).toUpperCase();
+      } else if (token.startsWith("e") || token.startsWith("d")) {
+        ornament = "flam";
+        graceHand = token[0].toUpperCase();
+        mainHand = token.slice(1).toUpperCase();
+      } else {
+        mainHand = token.toUpperCase();
+      }
+
+      const dynamic = isAccent ? "accent" : isGhost ? "ghost" : "normal";
+      const displayGrace =
+        ornament === "drag"
+          ? graceHand.toLowerCase() + graceHand.toLowerCase()
+          : ornament === "flam"
+          ? graceHand.toLowerCase()
+          : "";
+
+      const displayMain = isGhost ? `(${mainHand})` : mainHand;
+
+      return {
+        isRest: false,
+        hand: mainHand,
+        dynamic,
+        ornament,
+        graceHand,
+        displayMain,
+        displayGrace,
+        isAccent
+      };
+    }
+
+    /**
+     * Calcula informações pedagógicas e matemáticas da fórmula de compasso
+     */
+    function getTimeSignatureInfo(ex) {
+      const [numStr, denStr] = ex.timeSig.split("/");
+      const num = parseInt(numStr, 10);
+      const den = parseInt(denStr, 10);
+      const totalSteps = ex.pattern.length;
+
+      // Verifica se é compasso composto (6/8 ou 12/8)
+      const isCompound = den === 8 && (num === 6 || num === 12);
+      const mainBeatsCount = isCompound ? num / 3 : num;
+      const stepsPerMainBeat = totalSteps / mainBeatsCount;
+
+      // Duração de um pulso principal (BPM = Semínima nos simples; BPM = Semínima Pontuada nos compostos)
+      const mainBeatDurationSec = 60.0 / appState.bpm;
+      const stepDurationSec = mainBeatDurationSec / stepsPerMainBeat;
+
+      let explanationHTML = "";
+      if (isCompound) {
+        explanationHTML = `Em <strong>${ex.timeSig}</strong> (compasso composto), o BPM rege a <strong>Semínima Pontuada</strong> (${mainBeatsCount} grandes pulsos ternários por compasso). Cada pulso agrupa 3 colcheias.`;
+      } else if (ex.timeSig === "5/4") {
+        explanationHTML = `Em <strong>5/4</strong> (compasso ímpar), cada compasso soma <strong>5 Semínimas</strong> completas antes de reiniciar o ciclo no Tempo 1.`;
+      } else {
+        explanationHTML = `Em <strong>${ex.timeSig}</strong> (compasso simples), o BPM dita a <strong>Semínima</strong> (${mainBeatsCount} tempos por compasso, subdivididos em ${stepsPerMainBeat} nota(s) por tempo).`;
+      }
+
+      return {
+        num,
+        den,
+        isCompound,
+        mainBeatsCount,
+        stepsPerMainBeat,
+        mainBeatDurationSec,
+        stepDurationSec,
+        explanationHTML
+      };
+    }
+
+    /********************************************************************
+     * 5. AGENDADOR DE ÁUDIO COM LOOKAHEAD (PRECISÃO CIRÚRGICA)
+     ********************************************************************/
+    const LOOKAHEAD_MS = 25.0; // Frequência do loop de checagem (ms)
+    const SCHEDULE_AHEAD_SEC = 0.11; // Janela de agendamento no futuro (segundos)
+
+    let schedulerTimerId = null;
+    let nextNoteTime = 0;
+    let currentStepIndex = 0;
+    let countInStepsRemaining = 0;
+    let completedBarsCount = 0;
+    let visualQueue = [];
+    let animFrameId = null;
+
+    function getCurrentExercise() {
+      for (const mod of CURRICULUM_MODULES) {
+        for (const ex of mod.exercises) {
+          if (ex.id === appState.selectedExId) return { mod, ex };
+        }
+      }
+      return { mod: CURRICULUM_MODULES[0], ex: CURRICULUM_MODULES[0].exercises[0] };
+    }
+
+    function startPlayback() {
+      ensureAudioContext();
+      if (appState.isPlaying) return;
+
+      appState.isPlaying = true;
+      currentStepIndex = 0;
+      completedBarsCount = 0;
+      visualQueue = [];
+
+      const { ex } = getCurrentExercise();
+      const tsInfo = getTimeSignatureInfo(ex);
+
+      if (appState.countInEnabled) {
+        countInStepsRemaining = tsInfo.mainBeatsCount;
+      } else {
+        countInStepsRemaining = 0;
+      }
+
+      nextNoteTime = audioCtx.currentTime + 0.06;
+      updateTransportUI();
+
+      schedulerTimerId = setInterval(schedulerTick, LOOKAHEAD_MS);
+      animFrameId = requestAnimationFrame(renderVisualQueueLoop);
+    }
+
+    function stopPlayback() {
+      appState.isPlaying = false;
+      if (schedulerTimerId) {
+        clearInterval(schedulerTimerId);
+        schedulerTimerId = null;
+      }
+      if (animFrameId) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+      }
+      visualQueue = [];
+      document.getElementById("countinOverlay").classList.remove("visible");
+      clearActiveStepHighlights();
+      updateTransportUI();
+    }
+
+    function schedulerTick() {
+      if (!appState.isPlaying || !audioCtx) return;
+
+      while (nextNoteTime < audioCtx.currentTime + SCHEDULE_AHEAD_SEC) {
+        const { ex } = getCurrentExercise();
+        const tsInfo = getTimeSignatureInfo(ex);
+
+        if (countInStepsRemaining > 0) {
+          // Agenda clique de Count-In (1 compasso nos pulsos principais)
+          const totalCountBeats = tsInfo.mainBeatsCount;
+          const currentCountBeat = totalCountBeats - countInStepsRemaining + 1;
+          const isFirst = currentCountBeat === 1;
+
+          triggerMetronomeClick(nextNoteTime, isFirst ? "downbeat" : "beat");
+
+          visualQueue.push({
+            time: nextNoteTime,
+            type: "countin",
+            countNumber: currentCountBeat
+          });
+
+          nextNoteTime += tsInfo.mainBeatDurationSec;
+          countInStepsRemaining--;
+        } else {
+          // Agenda passo real do exercício
+          scheduleExerciseStep(ex, tsInfo, currentStepIndex, nextNoteTime);
+
+          nextNoteTime += tsInfo.stepDurationSec;
+          currentStepIndex++;
+
+          if (currentStepIndex >= ex.pattern.length) {
+            currentStepIndex = 0;
+            onBarCompletedScheduled();
+          }
+        }
+      }
+    }
+
+    function scheduleExerciseStep(ex, tsInfo, stepIdx, stepTime) {
+      const isDownbeat = stepIdx === 0;
+      const isMainBeat = stepIdx % tsInfo.stepsPerMainBeat === 0;
+
+      // 1. Metrônomo Inteligente
+      if (isDownbeat) {
+        triggerMetronomeClick(stepTime, "downbeat");
+      } else if (isMainBeat) {
+        triggerMetronomeClick(stepTime, "beat");
+      }
+
+      // 2. Som do Pad (Acento, Normal, Fantasma, Flam ~35ms antes ou Drag)
+      const parsed = parseNoteToken(ex.pattern[stepIdx], appState.invertHands);
+
+      if (!parsed.isRest) {
+        if (parsed.ornament === "flam") {
+          // Apojatura simples ~35ms antes da nota principal
+          const graceTime = Math.max(audioCtx.currentTime, stepTime - 0.035);
+          triggerPadSound(graceTime, "grace", parsed.graceHand);
+        } else if (parsed.ornament === "drag") {
+          // Duas apojaturas rápidas (~48ms e ~24ms antes da nota principal)
+          const grace1 = Math.max(audioCtx.currentTime, stepTime - 0.048);
+          const grace2 = Math.max(audioCtx.currentTime, stepTime - 0.024);
+          triggerPadSound(grace1, "grace", parsed.graceHand);
+          triggerPadSound(grace2, "grace", parsed.graceHand);
+        }
+
+        triggerPadSound(stepTime, parsed.dynamic, parsed.hand);
+      }
+
+      // 3. Enfileira animação visual sincronizada com AudioContext.currentTime
+      visualQueue.push({
+        time: stepTime,
+        type: "step",
+        stepIdx,
+        parsed,
+        barNumber: completedBarsCount + 1
+      });
+    }
+
+    function onBarCompletedScheduled() {
+      completedBarsCount++;
+      // Ganha +5 XP por compasso praticado
+      addXP(5);
+
+      // Modo Escada de Velocidade (+5 BPM a cada 4 compassos)
+      if (appState.speedLadderEnabled && completedBarsCount % 4 === 0) {
+        if (appState.bpm < 220) {
+          setBPM(Math.min(220, appState.bpm + 5));
+        }
+      }
+    }
+
+    function renderVisualQueueLoop() {
+      if (!appState.isPlaying || !audioCtx) return;
+
+      const now = audioCtx.currentTime;
+      while (visualQueue.length > 0 && visualQueue[0].time <= now + 0.012) {
+        const evt = visualQueue.shift();
+        if (evt.type === "countin") {
+          showCountInVisual(evt.countNumber);
+        } else if (evt.type === "step") {
+          document.getElementById("countinOverlay").classList.remove("visible");
+          renderStepVisuals(evt.stepIdx, evt.parsed, evt.barNumber);
+        }
+      }
+
+      animFrameId = requestAnimationFrame(renderVisualQueueLoop);
+    }
+
+    /********************************************************************
+     * 6. RENDERIZAÇÃO VISUAL DOS PADS, BAQUETAS E GRADE DE MANULAÇÃO
+     ********************************************************************/
+    let padLeftTimeout = null;
+    let padRightTimeout = null;
+
+    function showCountInVisual(num) {
+      const overlay = document.getElementById("countinOverlay");
+      const numEl = document.getElementById("countinNumber");
+      overlay.classList.add("visible");
+      numEl.textContent = num;
+      numEl.style.animation = "none";
+      void numEl.offsetWidth;
+      numEl.style.animation = "popIn 0.25s ease-out";
+    }
+
+    function animatePadHit(hand, dynamic, ornament = "none", graceHand = null) {
+      // Se houver Flam ou Drag, pisca brevemente a mão da apojatura antes
+      if (ornament !== "none" && graceHand) {
+        triggerSinglePadDOM(graceHand, "ghost", ornament === "drag" ? "Drag (rr)" : "Flam (g)");
+      }
+      if (hand === "D" || hand === "E") {
+        const label =
+          dynamic === "accent"
+            ? "ACENTO (>)"
+            : dynamic === "ghost"
+            ? "Fantasma (30%)"
+            : "Toque Normal";
+        triggerSinglePadDOM(hand, dynamic, label);
+      }
+    }
+
+    function triggerSinglePadDOM(hand, dynamic, tagText) {
+      const isRight = hand === "D";
+      const padEl = document.getElementById(isRight ? "padRight" : "padLeft");
+      const tagEl = document.getElementById(isRight ? "rightDynamicTag" : "leftDynamicTag");
+
+      padEl.classList.remove("hit", "hit-normal", "hit-accent", "hit-ghost");
+      void padEl.offsetWidth; // Reflow para reiniciar animação
+      padEl.classList.add("hit", `hit-${dynamic}`);
+      tagEl.textContent = tagText;
+
+      const clearFn = () => {
+        padEl.classList.remove("hit", "hit-normal", "hit-accent", "hit-ghost");
+      };
+
+      if (isRight) {
+        if (padRightTimeout) clearTimeout(padRightTimeout);
+        padRightTimeout = setTimeout(clearFn, 135);
+      } else {
+        if (padLeftTimeout) clearTimeout(padLeftTimeout);
+        padLeftTimeout = setTimeout(clearFn, 135);
+      }
+    }
+
+    function renderStepVisuals(stepIdx, parsed, barNumber) {
+      // 1. Destaca pílula do Contador de Subdivisões
+      const beatPills = document.querySelectorAll("#beatSlots .beat-pill");
+      beatPills.forEach((pill, i) => {
+        pill.classList.toggle("active", i === stepIdx);
+      });
+
+      // 2. Destaca célula da Grade de Manulação
+      const noteCells = document.querySelectorAll("#stickingGrid .note-cell");
+      noteCells.forEach((cell, i) => {
+        cell.classList.toggle("active-step", i === stepIdx);
+      });
+
+      // 3. Atualiza número do compasso e barra da Escada de Velocidade
+      document.getElementById("currentMeasureInfo").textContent = `Compasso #${barNumber}`;
+      updateSpeedLadderVisual(barNumber);
+
+      // 4. Anima o Pad correspondente (Esquerdo ou Direito)
+      if (!parsed.isRest) {
+        animatePadHit(parsed.hand, parsed.dynamic, parsed.ornament, parsed.graceHand);
+      }
+    }
+
+    function clearActiveStepHighlights() {
+      document.querySelectorAll("#beatSlots .beat-pill.active").forEach((el) => el.classList.remove("active"));
+      document.querySelectorAll("#stickingGrid .note-cell.active-step").forEach((el) => el.classList.remove("active-step"));
+      document.getElementById("currentMeasureInfo").textContent = "Pronto";
+      document.getElementById("leftDynamicTag").textContent = "Pronto";
+      document.getElementById("rightDynamicTag").textContent = "Pronto";
+    }
+
+    /********************************************************************
+     * 7. CONSTRUÇÃO E ATUALIZAÇÃO DE INTERFACE (SIDEBAR + PALCO)
+     ********************************************************************/
+    function renderSidebar(filterQuery = "") {
+      const container = document.getElementById("modulesContainer");
+      container.innerHTML = "";
+      const q = filterQuery.trim().toLowerCase();
+
+      const { mod: activeMod } = getCurrentExercise();
+      let visibleModules = 0;
+
+      CURRICULUM_MODULES.forEach((mod) => {
+        const filteredExs = mod.exercises.filter((ex) => {
+          if (!q) return true;
+          return (
+            ex.name.toLowerCase().includes(q) ||
+            ex.nick.toLowerCase().includes(q) ||
+            ex.timeSig.toLowerCase().includes(q) ||
+            ex.id.toLowerCase().includes(q)
+          );
+        });
+
+        if (filteredExs.length === 0) return;
+        visibleModules++;
+
+        const masteredInMod = mod.exercises.filter((e) => appState.masteredIds.includes(e.id)).length;
+        const pct = Math.round((masteredInMod / mod.exercises.length) * 100);
+
+        const block = document.createElement("div");
+        block.className = "module-block" + (mod.id === activeMod.id || q ? " open" : "");
+
+        const header = document.createElement("div");
+        header.className = "module-header";
+        header.innerHTML = `
+          <div class="module-title-wrap">
+            <span class="module-num">Módulo ${mod.id}</span>
+            <span class="module-name">${mod.title}</span>
+          </div>
+          <span class="module-progress-pill ${pct === 100 ? "complete" : ""}">${masteredInMod}/10 (${pct}%)</span>
+        `;
+        header.addEventListener("click", () => {
+          block.classList.toggle("open");
+        });
+
+        const list = document.createElement("div");
+        list.className = "exercise-list";
+
+        filteredExs.forEach((ex) => {
+          const isDone = appState.masteredIds.includes(ex.id);
+          const isActive = ex.id === appState.selectedExId;
+
+          const item = document.createElement("div");
+          item.className = "exercise-item" + (isActive ? " active" : "");
+          item.innerHTML = `
+            <div class="ex-item-left">
+              <span class="ex-code">${ex.id}</span>
+              <span class="ex-title-short">${ex.name}</span>
+            </div>
+            <div class="ex-status-dot ${isDone ? "done" : ""}">${isDone ? "✓" : ""}</div>
+          `;
+          item.addEventListener("click", () => {
+            selectExercise(ex.id);
+          });
+          list.appendChild(item);
+        });
+
+        block.appendChild(header);
+        block.appendChild(list);
+        container.appendChild(block);
+      });
+
+      document.getElementById("filteredCount").textContent = `${visibleModules} Módulo(s)`;
+    }
+
+    function selectExercise(exId) {
+      const wasPlaying = appState.isPlaying;
+      if (wasPlaying) stopPlayback();
+
+      appState.selectedExId = exId;
+      saveProgress();
+
+      const { ex } = getCurrentExercise();
+      // Ajusta BPM para o alvo iniciante do exercício selecionado ao trocar
+      setBPM(ex.bpmTargets[0]);
+
+      renderExerciseStage();
+      renderSidebar(document.getElementById("searchInput").value);
+    }
+
+    function renderExerciseStage() {
+      const { mod, ex } = getCurrentExercise();
+      const tsInfo = getTimeSignatureInfo(ex);
+
+      // Banner superior
+      document.getElementById("exModuleBadge").textContent = `Módulo ${mod.id} • #${ex.id}`;
+      document.getElementById("exNicknameBadge").textContent = `⚡ "${ex.nick}"`;
+      document.getElementById("exTitle").textContent = ex.name;
+      document.getElementById("exObjective").textContent = ex.objective;
+      document.getElementById("masterTipText").textContent = ex.tip;
+
+      // Botão Dominado
+      const isMastered = appState.masteredIds.includes(ex.id);
+      const btnMastered = document.getElementById("btnMastered");
+      btnMastered.classList.toggle("mastered", isMastered);
+      document.getElementById("masteredIcon").textContent = isMastered ? "★" : "☆";
+      document.getElementById("masteredText").textContent = isMastered
+        ? "Exercício Dominado!"
+        : "Marcar como Dominado";
+
+      // HUD de Fórmula de Compasso e Subdivisão
+      document.getElementById("timeSigDisplay").textContent = ex.timeSig;
+      document.getElementById("subdivNameDisplay").textContent = ex.subdivLabel;
+      document.getElementById("timeMathExplanation").innerHTML = tsInfo.explanationHTML;
+
+      // Botões de BPM Alvo (Iniciante, Intermediário, Mestre)
+      document.getElementById("btnBpmInit").textContent = `Inic: ${ex.bpmTargets[0]}`;
+      document.getElementById("btnBpmInter").textContent = `Inter: ${ex.bpmTargets[1]}`;
+      document.getElementById("btnBpmMaster").textContent = `Mestre: ${ex.bpmTargets[2]}`;
+
+      // Renderiza Pílulas do Contador Visual
+      const beatSlotsEl = document.getElementById("beatSlots");
+      beatSlotsEl.innerHTML = "";
+      ex.counts.forEach((cnt, idx) => {
+        const pill = document.createElement("div");
+        const isMainBeat = idx % tsInfo.stepsPerMainBeat === 0;
+        pill.className = "beat-pill" + (isMainBeat ? " downbeat" : "");
+        pill.textContent = cnt;
+        beatSlotsEl.appendChild(pill);
+      });
+
+      // Renderiza Grade de Manulação
+      renderStickingGrid(ex, tsInfo);
+    }
+
+    function renderStickingGrid(ex, tsInfo) {
+      const gridEl = document.getElementById("stickingGrid");
+      gridEl.innerHTML = "";
+
+      ex.pattern.forEach((rawToken, idx) => {
+        const parsed = parseNoteToken(rawToken, appState.invertHands);
+        const isMainBeat = idx % tsInfo.stepsPerMainBeat === 0;
+
+        const cell = document.createElement("div");
+        cell.className = "note-cell" + (isMainBeat ? " beat-start" : "");
+
+        const accentHTML = `<div class="note-accent-mark">${parsed.isAccent ? "&gt;" : ""}</div>`;
+        const graceHTML = parsed.displayGrace
+          ? `<span class="grace-prefix grace-${parsed.graceHand}">${parsed.displayGrace}</span>`
+          : "";
+        const handHTML = `<div class="note-hand hand-${parsed.hand}">${graceHTML}<span>${parsed.displayMain}</span></div>`;
+        const countHTML = `<div class="note-count">${ex.counts[idx] || ""}</div>`;
+
+        cell.innerHTML = accentHTML + handHTML + countHTML;
+        gridEl.appendChild(cell);
+      });
+    }
+
+    function updateGamificationHeader() {
+      const masteredTotal = appState.masteredIds.length;
+      document.getElementById("masteredCount").textContent = masteredTotal;
+      document.getElementById("xpValue").textContent = appState.xp;
+      document.getElementById("globalProgressFill").style.width = `${masteredTotal}%`;
+
+      const rank = getRankForXP(appState.xp);
+      document.getElementById("rankIcon").textContent = rank.icon;
+      document.getElementById("rankName").textContent = rank.name;
+    }
+
+    function updateTransportUI() {
+      const btnPlay = document.getElementById("btnPlay");
+      btnPlay.classList.toggle("playing", appState.isPlaying);
+      document.getElementById("playIcon").textContent = appState.isPlaying ? "⏹" : "▶";
+      document.getElementById("playLabel").textContent = appState.isPlaying
+        ? "Parar Treino"
+        : "Iniciar Treino";
+    }
+
+    function updateSpeedLadderVisual(barNumber = 0) {
+      const badgeEl = document.getElementById("ladderBadgeStatus");
+      const textEl = document.getElementById("ladderProgressText");
+      const fillEl = document.getElementById("ladderBarFill");
+
+      if (!appState.speedLadderEnabled) {
+        badgeEl.textContent = "Desativado";
+        textEl.textContent =
+          'Ative o modo "Escada +5 BPM" para subir 5 BPM automaticamente a cada 4 compassos completos.';
+        fillEl.style.width = "0%";
+        return;
+      }
+
+      const stepInCycle = barNumber === 0 ? 0 : ((barNumber - 1) % 4) + 1;
+      badgeEl.textContent = `Ativo (${stepInCycle}/4 comp.)`;
+      textEl.textContent = `Compasso ${stepInCycle} de 4 no andamento atual (${appState.bpm} BPM). Próximo salto: ${Math.min(220, appState.bpm + 5)} BPM!`;
+      fillEl.style.width = `${(stepInCycle / 4) * 100}%`;
+    }
+
+    function setBPM(newBpm) {
+      const clamped = Math.max(40, Math.min(220, parseInt(newBpm, 10) || 80));
+      appState.bpm = clamped;
+      document.getElementById("bpmValue").textContent = clamped;
+      document.getElementById("bpmSlider").value = clamped;
+      const { ex } = getCurrentExercise();
+      const tsInfo = getTimeSignatureInfo(ex);
+      document.getElementById("timeMathExplanation").innerHTML = tsInfo.explanationHTML;
+    }
+
+    /********************************************************************
+     * 8. EFEITO DE CONFETES PARA CELEBRAÇÃO DE EXERCÍCIO DOMINADO
+     ********************************************************************/
+    function launchConfetti() {
+      const canvas = document.getElementById("confettiCanvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ["#00d2ff", "#ff6b4a", "#fbbf24", "#10b981", "#a855f7"];
+      const particles = Array.from({ length: 85 }, () => ({
+        x: canvas.width * 0.5 + (Math.random() - 0.5) * 240,
+        y: canvas.height * 0.35,
+        vx: (Math.random() - 0.5) * 14,
+        vy: -Math.random() * 12 - 4,
+        size: Math.random() * 8 + 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * Math.PI,
+        vRot: (Math.random() - 0.5) * 0.2
+      }));
+
+      let frame = 0;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.38; // gravidade
+          p.rot += p.vRot;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          ctx.restore();
+        });
+        frame++;
+        if (frame < 95) {
+          requestAnimationFrame(draw);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+
+    /********************************************************************
+     * 9. EVENT LISTENERS & INTERAÇÃO MANUAL NOS PADS / TECLADO
+     ********************************************************************/
+    function setupEventListeners() {
+      // Botão Play / Stop
+      document.getElementById("btnPlay").addEventListener("click", () => {
+        if (appState.isPlaying) {
+          stopPlayback();
+        } else {
+          startPlayback();
+        }
+      });
+
+      // Botão Inverter Mãos (Modo Canhoto / Mão Fraca)
+      document.getElementById("btnInvertHands").addEventListener("click", (e) => {
+        appState.invertHands = !appState.invertHands;
+        e.currentTarget.classList.toggle("active", appState.invertHands);
+        document.getElementById("invertLabel").textContent = appState.invertHands
+          ? "Mãos Invertidas (E↔D)"
+          : "Inverter Mãos (D↔E)";
+        const { ex } = getCurrentExercise();
+        renderStickingGrid(ex, getTimeSignatureInfo(ex));
+      });
+
+      // Botão Count-In
+      document.getElementById("btnCountIn").addEventListener("click", (e) => {
+        appState.countInEnabled = !appState.countInEnabled;
+        e.currentTarget.classList.toggle("active", appState.countInEnabled);
+      });
+
+      // Botão Escada de Velocidade (+5 BPM a cada 4 compassos)
+      document.getElementById("btnSpeedLadder").addEventListener("click", (e) => {
+        appState.speedLadderEnabled = !appState.speedLadderEnabled;
+        e.currentTarget.classList.toggle("active", appState.speedLadderEnabled);
+        updateSpeedLadderVisual(completedBarsCount);
+      });
+
+      // Controles de BPM
+      document.getElementById("bpmSlider").addEventListener("input", (e) => {
+        setBPM(e.target.value);
+      });
+      document.getElementById("btnBpmMinus").addEventListener("click", () => {
+        setBPM(appState.bpm - 2);
+      });
+      document.getElementById("btnBpmPlus").addEventListener("click", () => {
+        setBPM(appState.bpm + 2);
+      });
+
+      // Presets de BPM Alvo (Iniciante, Intermediário, Mestre)
+      document.getElementById("btnBpmInit").addEventListener("click", () => {
+        const { ex } = getCurrentExercise();
+        setBPM(ex.bpmTargets[0]);
+      });
+      document.getElementById("btnBpmInter").addEventListener("click", () => {
+        const { ex } = getCurrentExercise();
+        setBPM(ex.bpmTargets[1]);
+      });
+      document.getElementById("btnBpmMaster").addEventListener("click", () => {
+        const { ex } = getCurrentExercise();
+        setBPM(ex.bpmTargets[2]);
+      });
+
+      // Volumes independentes (Pad vs Metrônomo)
+      document.getElementById("padVolume").addEventListener("input", (e) => {
+        const val = parseInt(e.target.value, 10);
+        appState.padVolume = val / 100;
+        document.getElementById("padVolText").textContent = `${val}%`;
+      });
+      document.getElementById("metroVolume").addEventListener("input", (e) => {
+        const val = parseInt(e.target.value, 10);
+        appState.metroVolume = val / 100;
+        document.getElementById("metroVolText").textContent = `${val}%`;
+      });
+
+      // Marcar Exercício como Dominado (+50 XP + Confetes)
+      document.getElementById("btnMastered").addEventListener("click", () => {
+        const { ex } = getCurrentExercise();
+        const idx = appState.masteredIds.indexOf(ex.id);
+        if (idx === -1) {
+          appState.masteredIds.push(ex.id);
+          addXP(50);
+          launchConfetti();
+        } else {
+          appState.masteredIds.splice(idx, 1);
+          saveProgress();
+          updateGamificationHeader();
+        }
+        renderExerciseStage();
+        renderSidebar(document.getElementById("searchInput").value);
+      });
+
+      // Busca de Exercícios na Sidebar
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        renderSidebar(e.target.value);
+      });
+
+      // Toque Manual Interativo nos Pads (Mouse / Touch)
+      document.getElementById("padLeft").addEventListener("pointerdown", () => {
+        ensureAudioContext();
+        triggerPadSound(audioCtx.currentTime, "normal", "E");
+        animatePadHit("E", "normal");
+      });
+      document.getElementById("padRight").addEventListener("pointerdown", () => {
+        ensureAudioContext();
+        triggerPadSound(audioCtx.currentTime, "normal", "D");
+        animatePadHit("D", "normal");
+      });
+
+      // Atalhos de Teclado: [Espaço] = Play/Stop, [A]/[Seta Esq] = Pad E, [L]/[Seta Dir] = Pad D
+      window.addEventListener("keydown", (e) => {
+        if (document.activeElement === document.getElementById("searchInput")) return;
+
+        if (e.code === "Space") {
+          e.preventDefault();
+          if (appState.isPlaying) stopPlayback();
+          else startPlayback();
+        } else if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") {
+          ensureAudioContext();
+          const dyn = e.shiftKey ? "accent" : "normal";
+          triggerPadSound(audioCtx.currentTime, dyn, "E");
+          animatePadHit("E", dyn);
+        } else if (e.key === "l" || e.key === "L" || e.key === "ArrowRight") {
+          ensureAudioContext();
+          const dyn = e.shiftKey ? "accent" : "normal";
+          triggerPadSound(audioCtx.currentTime, dyn, "D");
+          animatePadHit("D", dyn);
+        }
+      });
+    }
+
+    // Inicialização Imediata
+    function initApp() {
+      loadProgress();
+      updateGamificationHeader();
+      const { ex } = getCurrentExercise();
+      setBPM(ex.bpmTargets[0]);
+      renderSidebar();
+      renderExerciseStage();
+      updateSpeedLadderVisual(0);
+      setupEventListeners();
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
